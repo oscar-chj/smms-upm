@@ -1,27 +1,17 @@
 "use client";
 
-import { FormError } from "@/components/ui/ErrorDisplay";
 import GlobeIcon from "@/components/common/GlobeIcon";
-import { useAuth } from "@/hooks/useAuth";
-import { useFormState } from "@/hooks/useFormState";
-import { AUTH_COOKIE_EXPIRES_DAYS, AUTH_COOKIE_NAME } from "@/lib/constants";
-import EventListService from "@/services/event/eventListService";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
   Button,
-  IconButton,
-  InputAdornment,
-  Link as MuiLink,
+  Divider,
   Paper,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import Cookies from "js-cookie";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import GoogleSignInButton from "./GoogleSignInButton";
 
 /**
  * Props for LoginForm component
@@ -31,73 +21,26 @@ interface LoginFormProps {
 }
 
 /**
- * LoginForm component provides the UI and functionality for user authentication
+ * LoginForm component provides Google OAuth authentication
  */
 export default function LoginForm({
   redirectPath = "/dashboard",
 }: LoginFormProps) {
-  // Use custom auth hook
-  const { login, isLoading, error, clearError } = useAuth();
-  // Use form state hook
-  const { values: formValues, handleChange } = useFormState({
-    email: "",
-    password: "",
-  });
+  const isDev = process.env.NODE_ENV !== "production";
+  const [devEmail, setDevEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Local state for password visibility
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Hooks for routing
-  const router = useRouter();
-
-  /**
-   * Toggle password visibility
-   */
-  const handleTogglePasswordVisibility = () => setShowPassword((show) => !show);
-
-  /**
-   * Prevent default on mouse down event
-   */
-  const handleMouseDownPassword = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    event.preventDefault();
-  };
-
-  /**
-   * Handle form submission with event list fetching
-   */
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    clearError();
-
-    const { email, password } = formValues;
-
-    // Attempt to authenticate user (UC1)
-    const user = await login(email, password);
-
-    if (user) {
-      // Set a cookie to maintain authenticated state
-      // In a real app with NextAuth, this would be handled by the auth provider
-      Cookies.set(AUTH_COOKIE_NAME, "sample_auth_token", {
-        expires: AUTH_COOKIE_EXPIRES_DAYS,
-        sameSite: "strict",
-      }); // UC2: Provide Event List - Fetch latest events after successful login
-      try {
-        console.log("Fetching latest event list...");
-        await EventListService.fetchEventList();
-        console.log("Event list cached successfully");
-      } catch (eventError) {
-        console.warn(
-          "Failed to fetch event list, continuing with login...",
-          eventError
-        );
-        // Don't block login if event fetching fails
-        sessionStorage.setItem("eventListCached", "false");
-      }
-
-      // Redirect to the requested page or dashboard
-      router.push(redirectPath);
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await signIn("dev-backdoor", {
+        email: devEmail,
+        redirectTo: redirectPath,
+      });
+    } catch (error) {
+      console.error("Dev login failed:", error);
+      setIsLoading(false);
     }
   };
 
@@ -128,91 +71,62 @@ export default function LoginForm({
         {/* Logo and Title */}
         <AppLogo />
 
-        {/* Error message */}
-        {error && <FormError error={error} onDismiss={clearError} />}
-
-        {/* Login Form */}
-        <Box
-          component="form"
-          sx={{ width: "100%", mt: 1 }}
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          <Stack spacing={3}>
-            <TextField
-              fullWidth
-              id="email"
-              label="Email Address or Student ID"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              required
-              variant="outlined"
-              value={formValues.email}
-              onChange={handleChange}
-              inputProps={{
-                "aria-label": "Email Address",
-              }}
-            />
-
-            <TextField
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              autoComplete="current-password"
-              variant="outlined"
-              required
-              value={formValues.password}
-              onChange={handleChange}
-              inputProps={{
-                "aria-label": "Password",
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleTogglePasswordVisibility}
-                      onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              type="submit"
-              disabled={isLoading}
-              sx={{ mt: 3, py: 1.5 }}
+        {/* Development Backdoor - Only shown in development */}
+        {isDev && (
+          <>
+            <Box
+              component="form"
+              onSubmit={handleDevLogin}
+              sx={{ width: "100%", mb: 2 }}
             >
-              {isLoading ? "Signing In..." : "Sign In"}
-            </Button>
-          </Stack>
-
-          <Box sx={{ mt: 3, textAlign: "center" }}>
-            <Typography variant="body2">
-              <MuiLink
-                component={Link}
-                href="/auth/forgot-password"
-                underline="hover"
+              <Typography
+                variant="caption"
+                color="warning.main"
+                sx={{ mb: 1, display: "block", fontWeight: 600 }}
               >
-                Forgot password?
-              </MuiLink>
-            </Typography>
-          </Box>
+                🔧 Development Backdoor
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                placeholder="Enter any email"
+                value={devEmail}
+                onChange={(e) => setDevEmail(e.target.value)}
+                required
+                sx={{ mb: 1 }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="outlined"
+                color="warning"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Dev Login"}
+              </Button>
+            </Box>
+            <Divider sx={{ width: "100%", my: 2 }}>OR</Divider>
+          </>
+        )}
+
+        {/* Google Sign In Button */}
+        <Box sx={{ width: "100%", mt: 2 }}>
+          <GoogleSignInButton redirectPath={redirectPath} />
         </Box>
+
+        {/* Footer Text */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 3, textAlign: "center" }}
+        >
+          By signing in, you agree to our Terms of Service and Privacy Policy
+        </Typography>
       </Paper>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
-        © {new Date().getFullYear()} Student Merit Management System
+
+      <Typography variant="body2" color="white" sx={{ mt: 4, opacity: 0.9 }}>
+        © {new Date().getFullYear()} eKolej Merit System
       </Typography>
     </Box>
   );
@@ -233,11 +147,15 @@ function AppLogo() {
           mb: 1,
         }}
       />
-      <Typography variant="h4" component="h1" sx={{ mt: 2, fontWeight: 700 }}>
-        Merit System
+      <Typography
+        variant="h4"
+        component="h1"
+        sx={{ mt: 2, fontWeight: 700, color: "primary.main" }}
+      >
+        Student&apos;s Merit Management System
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-        Student Merit Management System
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Sign in with your university account to continue
       </Typography>
     </Box>
   );
