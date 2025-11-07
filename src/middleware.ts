@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 /**
  * Route configuration for the application
  */
 const ROUTES = {
   // Public routes that don't require authentication
-  public: ["/auth/login", "/auth/forgot-password", "/auth/reset-password"],
+  public: ["/auth/login", "/auth/error"],
 
   // Routes that should bypass middleware entirely
   bypass: ["/_next", "/api", "/favicon.ico", "/public", "/assets", "/images"],
@@ -44,21 +48,6 @@ const isPublicRoute = (path: string): boolean => {
  */
 const shouldBypass = (path: string): boolean => {
   return matchesRoutePattern(path, ROUTES.bypass);
-};
-
-/**
- * Check if the user is authenticated based on request cookies
- * @param request - The Next.js request object
- * @returns True if the user is authenticated
- */
-const isAuthenticated = (request: NextRequest): boolean => {
-  // For development purposes, we'll check for an auth cookie
-  // In a real app, you would verify the session token with your auth provider
-  const authCookie = request.cookies.get("auth_token")?.value;
-
-  // Implement additional validation logic here in a real app
-  // e.g. check token expiration, validate signature, etc.
-  return !!authCookie;
 };
 
 /**
@@ -119,7 +108,7 @@ const handleAuthenticatedOnPublicRoute = (
  * Middleware function that executes on every request
  * Handles authentication, redirects, and route protection
  */
-export function middleware(request: NextRequest): NextResponse {
+export default auth((request) => {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for static assets and bypass routes
@@ -127,8 +116,8 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.next();
   }
 
-  // Check authentication status
-  const isUserAuthenticated = isAuthenticated(request);
+  // Check authentication status from NextAuth
+  const isUserAuthenticated = !!request.auth;
 
   // Handle root path special case
   if (pathname === "/") {
@@ -147,7 +136,7 @@ export function middleware(request: NextRequest): NextResponse {
 
   // Otherwise, continue to the requested page
   return NextResponse.next();
-}
+});
 
 /**
  * Configure which paths this middleware will run on
@@ -155,6 +144,6 @@ export function middleware(request: NextRequest): NextResponse {
 export const config = {
   // Apply middleware to all routes in the app except static assets
   matcher: [
-    "/((?!_next/static|_next/image|images|public|favicon.ico|assets).*)",
+    "/((?!_next/static|_next/image|images|public|favicon.ico|assets|api/auth).*)",
   ],
 };

@@ -1,7 +1,8 @@
+import { saveDevUser, saveGoogleUser } from "@/app/auth/actions";
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "../prisma/prisma";
+import GoogleProvider from "next-auth/providers/google";
+import { authConfig } from "./auth.config";
 
 // Development backdoor - only enabled in non-production environments
 const devProviders =
@@ -20,16 +21,10 @@ const devProviders =
           async authorize(credentials) {
             if (!credentials?.email) return null;
 
-            // Create or find user in database
-            const user = await prisma.user.upsert({
-              where: { email: credentials.email as string },
-              update: {},
-              create: {
-                email: credentials.email as string,
-                name: "Dev User",
-                image: null,
-              },
-            });
+            // Create or find user in database via server action
+            const user = await saveDevUser(credentials.email as string);
+
+            if (!user) return null;
 
             return {
               id: user.id,
@@ -43,6 +38,7 @@ const devProviders =
     : [];
 
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
+  ...authConfig,
   session: { strategy: "jwt" },
   providers: [
     GoogleProvider({
@@ -51,10 +47,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     }),
     ...devProviders,
   ],
-  pages: {
-    signIn: "/auth/login",
-  },
   callbacks: {
+    ...authConfig.callbacks,
     async signIn({ user, account, profile }) {
       // Google provider verification
       if (account?.provider === "google") {
@@ -63,7 +57,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         }
 
         // Check if email exists
-        if (!profile.email) {
+        if (!profile?.email) {
           return false; // Deny sign-in if no email
         }
 
@@ -78,24 +72,24 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           return false; // Deny sign-in for non-UPM emails
         }
 
-        // Save user to database on first sign-in
-        await prisma.user.upsert({
-          where: { email: profile.email },
-          update: {
-            name: user.name ?? undefined,
-            image: user.image ?? undefined,
-            emailVerified: true,
-          },
-          create: {
-            email: profile.email,
-            name: user.name ?? undefined,
-            image: user.image ?? undefined,
-            emailVerified: true,
-          },
+        // Save user to database via server action
+        await saveGoogleUser({
+          email: profile.email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
         });
       }
 
       return true; // Allow other providers (dev-backdoor)
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle redirects after sign in
+      // If url is relative, make it absolute
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // If url is on the same origin, allow it
+      else if (new URL(url).origin === baseUrl) return url;
+      // Otherwise, redirect to the base URL (dashboard)
+      return `${baseUrl}/dashboard`;
     },
   },
 });
