@@ -1,8 +1,17 @@
 "use client";
 
 import GlobeIcon from "@/components/common/GlobeIcon";
+import {
+  Box,
+  Button,
+  Divider,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 import GoogleSignInButton from "./GoogleSignInButton";
-import { Box, Paper, Typography } from "@mui/material";
 
 /**
  * Props for LoginForm component
@@ -17,6 +26,24 @@ interface LoginFormProps {
 export default function LoginForm({
   redirectPath = "/dashboard",
 }: LoginFormProps) {
+  const isDev = process.env.NODE_ENV !== "production";
+  const [devEmail, setDevEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await signIn("dev-backdoor", {
+        email: devEmail,
+        redirectTo: redirectPath,
+      });
+    } catch (error) {
+      console.error("Dev login failed:", error);
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -43,6 +70,45 @@ export default function LoginForm({
       >
         {/* Logo and Title */}
         <AppLogo />
+
+        {/* Development Backdoor - Only shown in development */}
+        {isDev && (
+          <>
+            <Box
+              component="form"
+              onSubmit={handleDevLogin}
+              sx={{ width: "100%", mb: 2 }}
+            >
+              <Typography
+                variant="caption"
+                color="warning.main"
+                sx={{ mb: 1, display: "block", fontWeight: 600 }}
+              >
+                🔧 Development Backdoor
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                placeholder="Enter any email"
+                value={devEmail}
+                onChange={(e) => setDevEmail(e.target.value)}
+                required
+                sx={{ mb: 1 }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="outlined"
+                color="warning"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Dev Login"}
+              </Button>
+            </Box>
+            <Divider sx={{ width: "100%", my: 2 }}>OR</Divider>
+          </>
+        )}
 
         {/* Google Sign In Button */}
         <Box sx={{ width: "100%", mt: 2 }}>
