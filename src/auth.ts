@@ -15,11 +15,16 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   },
   callbacks: {
     async signIn({ user }) {
+      // Check if email exists
+      if (!user.email) {
+        return false; // Deny sign-in if no email
+      }
+
       // Only allow emails from UPM domains
-      const email = user.email?.toLowerCase();
+      const email = user.email.toLowerCase();
       const allowedDomains = ["upm.edu.my", "student.upm.edu.my"];
       const isAllowedDomain = allowedDomains.some((domain) =>
-        email?.endsWith(`@${domain}`)
+        email.endsWith(`@${domain}`)
       );
 
       if (!isAllowedDomain) {
@@ -29,8 +34,15 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       // Save user to database on first sign-in
       await prisma.user.upsert({
         where: { email: user.email },
-        update: { name: user.name, image: user.image },
-        create: { email: user.email, name: user.name, image: user.image },
+        update: {
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
+        },
+        create: {
+          email: user.email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
+        },
       });
       return true;
     },
