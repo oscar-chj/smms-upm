@@ -15,7 +15,5 @@ export default function LoginRedirectWrapper() {
   const isAuthPage = from?.startsWith("/auth/");
   const redirectPath = from && !isAuthPage ? from : "/dashboard";
 
-  console.warn("Redirect path:", redirectPath);
-
   return <LoginForm redirectPath={redirectPath} />;
 }
