@@ -27,13 +27,13 @@ export async function saveGoogleUser(data: {
   return await prisma.user.upsert({
     where: { email: data.email },
     update: {
-      name: data.name,
+      name: data.name ?? "Google User",
       image: data.image,
       emailVerified: true,
     },
     create: {
       email: data.email,
-      name: data.name,
+      name: data.name ?? "Google User",
       image: data.image,
       emailVerified: true,
     },

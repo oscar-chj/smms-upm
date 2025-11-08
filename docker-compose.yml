@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: ekolej-postgres
+    container_name: smms-postgres
     restart: unless-stopped
     ports:
       - "5432:5432"
