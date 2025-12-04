@@ -20,7 +20,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 interface LeaderboardEntry {
   id: string;
@@ -29,10 +29,10 @@ interface LeaderboardEntry {
   faculty: string;
   year: number;
   totalPoints: number;
-  universityPoints: number;
-  facultyPoints: number;
-  collegePoints: number;
-  clubPoints: number;
+  universityMerit: number;
+  facultyMerit: number;
+  collegeMerit: number;
+  clubMerit: number;
 }
 
 interface TabPanelProps {
@@ -52,7 +52,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`leaderboard-tab-${index}`}
       {...other}
     >
-      {value === index && <Box>{children}</Box>}
+      {children}
     </div>
   );
 }
@@ -199,17 +199,28 @@ function LeaderboardTable({
   sortBy,
   currentUserId = "1",
 }: LeaderboardTableProps) {
+  const cacheRef = useRef<Record<string, LeaderboardEntry[]>>({});
   const [sortedData, setSortedData] = useState<LeaderboardEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !cacheRef.current[sortBy]);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      // Check cache first - don't fetch if cached
+      if (cacheRef.current[sortBy]) {
+        setSortedData(cacheRef.current[sortBy]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Only fetch for uncached data
       try {
         setIsLoading(true);
         const response = await fetch(`/api/leaderboard?sortBy=${sortBy}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data) {
+            // Cache the result
+            cacheRef.current[sortBy] = data.data;
             setSortedData(data.data);
           }
         }
@@ -322,16 +333,16 @@ function LeaderboardTable({
 
                 switch (sortBy) {
                   case "university":
-                    points = entry.universityPoints;
+                    points = entry.universityMerit;
                     break;
                   case "faculty":
-                    points = entry.facultyPoints;
+                    points = entry.facultyMerit;
                     break;
                   case "college":
-                    points = entry.collegePoints;
+                    points = entry.collegeMerit;
                     break;
                   case "club":
-                    points = entry.clubPoints;
+                    points = entry.clubMerit;
                     break;
                 }
 
@@ -413,16 +424,27 @@ function LeaderboardTable({
 function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
   const [top3, setTop3] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const cacheRef = useRef<LeaderboardEntry[] | null>(null);
 
   useEffect(() => {
     const fetchTop3 = async () => {
       try {
+        // Check cache first
+        if (cacheRef.current) {
+          setTop3(cacheRef.current);
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(true);
         const response = await fetch("/api/leaderboard?sortBy=total");
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data) {
-            setTop3(data.data.slice(0, 3));
+            const top3Data = data.data.slice(0, 3);
+            // Cache the result
+            cacheRef.current = top3Data;
+            setTop3(top3Data);
           }
         }
       } catch (error) {
