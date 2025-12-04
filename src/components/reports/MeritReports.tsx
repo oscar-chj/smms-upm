@@ -1,8 +1,8 @@
 "use client";
 
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
-import { formatDate } from "@/lib/dateUtils";
-import DataService from "@/services/data/DataService";
+import { formatDate, toDateString } from "@/lib/dateUtils";
+import meritService from "@/services/merit/meritService";
 import { EventCategory, MeritRecord } from "@/types/api.types";
 import { Download, Print } from "@mui/icons-material";
 import {
@@ -12,10 +12,14 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider,
-  List,
-  ListItem,
+  Paper,
   Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Tabs,
   Typography,
 } from "@mui/material";
@@ -60,10 +64,24 @@ export default function MeritReports({
   const [records, setRecords] = useState<MeritRecord[]>([]);
 
   useEffect(() => {
-    // Fetch data from DataService
-    const meritRecords = DataService.getStudentMeritRecords(studentId);
+    // Fetch data from API
+    const fetchRecords = async () => {
+      try {
+        const response = await meritService.getStudentMeritRecords(studentId, {
+          limit: 1000, // Get all records for reports
+        });
 
-    setRecords(meritRecords);
+        if (response.success && response.data) {
+          setRecords(response.data.records);
+        }
+      } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
+        console.error("Error fetching merit records:", error);
+      }
+    };
+
+    fetchRecords();
   }, [studentId]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -98,53 +116,52 @@ export default function MeritReports({
     }
 
     return (
-      <List sx={{ mt: 2 }}>
-        {meritRecords.map((record, index) => (
-          <Box key={record.id}>
-            <ListItem
-              sx={{ flexDirection: "column", alignItems: "flex-start", py: 2 }}
-            >
-              <Box
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Description</TableCell>
+              <TableCell>Category</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell align="right">Points</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {meritRecords.map((record) => (
+              <TableRow
+                key={record.id}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  mb: 1,
+                  "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
                 }}
               >
-                <Typography variant="h6" component="h3">
-                  {record.description}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {record.description}
+                  </Typography>
+                </TableCell>
+                <TableCell>
                   <Chip
                     label={getCategoryDisplayName(record.category)}
                     size="small"
                     color={getCategoryColor(record.category)}
                     sx={{ color: "white", fontWeight: 600 }}
                   />
-                  <Typography variant="h6" color="primary" fontWeight="bold">
-                    +{record.points} pts
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {formatDate(toDateString(record.date))}
                   </Typography>
-                </Box>
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  mt: 1,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">
-                  Date: {formatDate(record.date)}
-                </Typography>
-              </Box>
-            </ListItem>
-            {index < meritRecords.length - 1 && <Divider />}
-          </Box>
-        ))}
-      </List>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="h6" color="primary" fontWeight="bold">
+                    +{record.points}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
   };
 
@@ -219,7 +236,7 @@ export default function MeritReports({
       {/* Merit Records by Category */}
       <Card>
         <CardContent>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box>
             <Tabs
               value={selectedTab}
               onChange={handleTabChange}

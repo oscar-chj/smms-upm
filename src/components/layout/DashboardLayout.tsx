@@ -1,7 +1,7 @@
 "use client";
 
-import { DRAWER_WIDTH } from "@/lib/constants";
-import authService from "@/services/auth/authService";
+import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from "@/lib/constants";
+import { useSession } from "next-auth/react";
 import { Menu as MenuIcon } from "@mui/icons-material";
 import {
   AppBar,
@@ -37,30 +37,30 @@ const DashboardLayout = memo(function DashboardLayout({
   title = "Dashboard",
 }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [, setCurrentUserName] = useState<string>("User");
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));  useEffect(() => {
-    // Get current user name for display
-    const getCurrentUserName = async () => {
-      try {
-        const user = await authService.getCurrentUser();
-        if (user) {
-          setCurrentUserName(user.name);
-        } else {
-          console.warn("No authenticated user found in DashboardLayout");
-          // Don't fallback to default user - this causes admin to become user 1
-        }
-      } catch (error) {
-        console.error("Error getting current user name:", error);
-      }
-    };
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { data: session } = useSession();
 
-    getCurrentUserName();
-  }, []);
+  useEffect(() => {
+    // Update current user name from NextAuth session
+    if (session?.user?.name) {
+      setCurrentUserName(session.user.name);
+    }
+  }, [session]);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
   };
+
+  const handleDesktopToggle = () => {
+    setDesktopCollapsed((prevState) => !prevState);
+  };
+
+  const currentDrawerWidth = desktopCollapsed
+    ? DRAWER_WIDTH_COLLAPSED
+    : DRAWER_WIDTH;
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -68,7 +68,7 @@ const DashboardLayout = memo(function DashboardLayout({
       <Box
         component="nav"
         sx={{
-          width: { sm: DRAWER_WIDTH },
+          width: { sm: currentDrawerWidth },
           flexShrink: { sm: 0 },
         }}
         aria-label="main navigation"
@@ -80,13 +80,21 @@ const DashboardLayout = memo(function DashboardLayout({
             display: { xs: "none", sm: "block" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
-              width: DRAWER_WIDTH,
+              width: currentDrawerWidth,
               borderRight: "1px solid rgba(0, 0, 0, 0.08)",
+              transition: theme.transitions.create("width", {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+              overflowX: "hidden",
             },
           }}
           open
         >
-          <Sidebar />
+          <Sidebar
+            collapsed={desktopCollapsed}
+            onToggleCollapse={handleDesktopToggle}
+          />
         </Drawer>
 
         {/* Mobile drawer - temporary and conditionally rendered */}
@@ -121,10 +129,14 @@ const DashboardLayout = memo(function DashboardLayout({
           color="default"
           elevation={0}
           sx={{
-            width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-            ml: { sm: `${DRAWER_WIDTH}px` },
+            width: { sm: `calc(100% - ${currentDrawerWidth}px)` },
+            ml: { sm: `${currentDrawerWidth}px` },
             backgroundColor: "background.paper",
             borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+            transition: theme.transitions.create(["width", "margin"], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           }}
         >
           <Toolbar>
@@ -151,10 +163,9 @@ const DashboardLayout = memo(function DashboardLayout({
             px: { xs: 2, sm: 4 },
             pb: 4,
             backgroundColor: "background.default",
-            overflow: "auto", // Allow scrolling in main content area
           }}
         >
-          <Container maxWidth="lg" sx={{ height: "100%" }}>
+          <Container maxWidth="lg" sx={{ height: "100%", my: 4 }}>
             {children}
           </Container>
         </Box>

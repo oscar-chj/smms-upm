@@ -39,6 +39,8 @@ export default function LoginForm({
         redirectTo: redirectPath,
       });
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Dev login failed:", error);
       setIsLoading(false);
     }

@@ -24,18 +24,40 @@ export async function saveGoogleUser(data: {
   name?: string;
   image?: string;
 }) {
+  // Extract student ID from email if it's a student email
+  const emailLower = data.email.toLowerCase();
+  let studentData: {
+    studentId?: string;
+    enrollmentDate?: Date;
+  } = {};
+
+  // Check if email is from student domain and extract student ID
+  if (emailLower.endsWith("@student.upm.edu.my")) {
+    const studentId = emailLower.split("@")[0];
+    studentData = {
+      studentId: studentId,
+      enrollmentDate: new Date(), // Set enrollment date to current date for new students
+    };
+  }
+
   return await prisma.user.upsert({
     where: { email: data.email },
     update: {
-      name: data.name,
+      name: data.name ?? "Google User",
       image: data.image,
       emailVerified: true,
+      // Update student ID and enrollment date only if not already set
+      ...(studentData.studentId && {
+        studentId: studentData.studentId,
+        enrollmentDate: studentData.enrollmentDate,
+      }),
     },
     create: {
       email: data.email,
-      name: data.name,
+      name: data.name ?? "Google User",
       image: data.image,
       emailVerified: true,
+      ...studentData,
     },
   });
 }

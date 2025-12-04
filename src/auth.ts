@@ -49,6 +49,20 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      // Add user ID to token when user signs in
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Add user ID from token to session
+      if (token?.id) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
     async signIn({ user, account, profile }) {
       // Google provider verification
       if (account?.provider === "google") {

@@ -1,11 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -14,13 +11,136 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Minimal User schema
+// Enums
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+enum EventCategory {
+  UNIVERSITY
+  FACULTY
+  COLLEGE
+  CLUB
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  WAITLISTED
+  CANCELLED
+  ATTENDED
+}
+
+// User model - represents both students and admins
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified Boolean?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String              @id @default(cuid())
+  name              String
+  email             String              @unique
+  emailVerified     Boolean             @default(false)
+  image             String?
+  role              UserRole            @default(STUDENT)
+  
+  // Student-specific fields
+  studentId         String?             @unique
+  faculty           String?
+  year              Int?
+  program           String?
+  totalMeritPoints  Int                 @default(0)
+  enrollmentDate    DateTime?
+  
+  // Timestamps
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  registrations     EventRegistration[]
+  meritRecords      MeritRecord[]
+  
+  @@index([email])
+  @@index([studentId])
+}
+
+// Event model
+model Event {
+  id              String              @id @default(cuid())
+  title           String
+  description     String
+  date            DateTime
+  time            String
+  location        String
+  organizer       String
+  category        EventCategory
+  points          Int
+  capacity        Int
+  registeredCount Int                 @default(0)
+  status          EventStatus         @default(UPCOMING)
+  imageUrl        String?
+  
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  registrations   EventRegistration[]
+  meritRecords    MeritRecord[]
+  
+  @@index([category])
+  @@index([status])
+  @@index([date])
+}
+
+// EventRegistration model
+model EventRegistration {
+  id                String             @id @default(cuid())
+  eventId           String
+  studentId         String
+  registrationDate  DateTime           @default(now())
+  status            RegistrationStatus @default(REGISTERED)
+  attendanceMarked  Boolean            @default(false)
+  pointsAwarded     Int                @default(0)
+  
+  // Timestamps
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  event             Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student           User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, studentId])
+  @@index([studentId])
+  @@index([eventId])
+}
+
+// MeritRecord model
+model MeritRecord {
+  id          String        @id @default(cuid())
+  studentId   String
+  eventId     String?
+  category    EventCategory
+  points      Int
+  description String
+  date        DateTime
+  isVerified  Boolean       @default(true)
+  meritType   String?
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  student     User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  event       Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  
+  @@index([studentId])
+  @@index([eventId])
+  @@index([category])
+  @@index([date])
 }

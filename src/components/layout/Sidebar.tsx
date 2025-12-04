@@ -1,13 +1,14 @@
 "use client";
 
-import { mainNavigationItems } from "@/data/navigationData";
+import ProfileAvatar from "@/components/common/ProfileAvatar";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { getIconComponent } from "@/lib/iconUtils";
 import { UserRole } from "@/types/auth.types";
-import { Logout } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, Logout } from "@mui/icons-material";
 import {
   Box,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -20,35 +21,101 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useMemo } from "react";
-import ProfileAvatar from "@/components/common/ProfileAvatar";
+import { SidebarSkeleton } from "../ui/skeletons";
+
+export interface NavigationItem {
+  text: string;
+  iconName: string; // Store icon name instead of JSX
+  href: string;
+  tooltip?: string;
+  roles?: UserRole[];
+}
+
+/**
+ * Navigation items defined in component to avoid SSR/hydration issues
+ */
+const mainNavigationItems: NavigationItem[] = [
+  {
+    text: "Dashboard",
+    iconName: "Dashboard",
+    href: "/dashboard",
+    tooltip: "View your dashboard overview",
+  },
+  {
+    text: "Merit Points",
+    iconName: "AssessmentOutlined",
+    href: "/dashboard/merits",
+    tooltip: "View and track your merit points",
+  },
+  {
+    text: "Events",
+    iconName: "EventNote",
+    href: "/dashboard/events",
+    tooltip: "Browse and register for university events",
+  },
+  {
+    text: "Leaderboard",
+    iconName: "Leaderboard",
+    href: "/dashboard/leaderboard",
+    tooltip: "View student merit rankings",
+  },
+  {
+    text: "Reports",
+    iconName: "Assessment",
+    href: "/dashboard/reports",
+    tooltip: "Generate and view merit reports",
+    roles: [UserRole.STUDENT],
+  },
+  {
+    text: "Upload Merit",
+    iconName: "Upload",
+    href: "/dashboard/admin/merit-upload",
+    tooltip: "Upload merit points for events",
+    roles: [UserRole.ADMIN],
+  },
+];
 
 /**
  * Sidebar component props
  */
 interface SidebarProps {
   onItemClick?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 /**
  * Sidebar component providing navigation for the dashboard
  */
-const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
+const Sidebar = memo(function Sidebar({
+  onItemClick,
+  collapsed = false,
+  onToggleCollapse,
+}: SidebarProps) {
   const pathname = usePathname();
   const { student, isLoading } = useUserProfile();
 
   // Memoize user profile object to prevent unnecessary re-renders
-  const userProfile = useMemo(() => ({
-    name: student?.name || (isLoading ? "Loading..." : "User"),
-    role: student?.role || UserRole.STUDENT,
-    avatar: student?.profileImage || "/default-avatar.png",
-    studentId: student?.studentId || (isLoading ? "..." : "000000"),
-    faculty: student?.faculty || (isLoading ? "Loading..." : "Unknown Faculty"),
-    year: student?.year?.toString() || (isLoading ? "..." : "0"),
-  }), [student, isLoading]);
+  const userProfile = useMemo(
+    () => ({
+      name: student?.name || (isLoading ? "Loading..." : "User"),
+      role: student?.role || UserRole.STUDENT,
+      avatar: student?.image || "/default-avatar.png",
+      studentId: student?.studentId || (isLoading ? "..." : "000000"),
+      faculty:
+        student?.faculty || (isLoading ? "Loading..." : "Unknown Faculty"),
+      year: student?.year?.toString() || (isLoading ? "..." : "0"),
+    }),
+    [student, isLoading]
+  );
 
   // Filter navigation items based on user role
-  const visibleNavItems = mainNavigationItems.filter(
-    (item) => !item.roles || item.roles.includes(userProfile.role)
+  const visibleNavItems = useMemo(
+    () =>
+      mainNavigationItems.filter(
+        (item) => !item.roles || item.roles.includes(userProfile.role)
+      ),
+    [userProfile.role]
   );
 
   const handleItemClick = () => {
@@ -57,10 +124,29 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
     }
   };
 
+  // Show skeleton while loading user data
+  if (isLoading) {
+    return <SidebarSkeleton collapsed={collapsed} />;
+  }
+
   return (
     <>
+      {/* Collapse Button */}
+      {onToggleCollapse && (
+        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
+          <Tooltip
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            placement="right"
+          >
+            <IconButton onClick={onToggleCollapse} size="small">
+              {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+
       {/* User Profile Section */}
-      <Box sx={{ p: 2, pt: 4 }}>
+      <Box sx={{ p: 2, pt: collapsed ? 2 : 4 }}>
         <Box
           sx={{
             display: "flex",
@@ -68,32 +154,36 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
             alignItems: "center",
             mb: 2,
           }}
-        >          <ProfileAvatar
+        >
+          <ProfileAvatar
             src={userProfile.avatar}
             alt={userProfile.name}
-            sx={{ 
-              width: 80, 
-              height: 80, 
-              mb: 1.5,
+            sx={{
+              width: collapsed ? 40 : 80,
+              height: collapsed ? 40 : 80,
+              transition: "all 0.3s ease",
             }}
           />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {userProfile.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {userProfile.role.toUpperCase()}
-          </Typography>
+          {!collapsed && (
+            <>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {userProfile.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {userProfile.role.toUpperCase()}
+              </Typography>
+            </>
+          )}
         </Box>
 
         {/* Student Information Card */}
-        {userProfile.role === UserRole.STUDENT && (
+        {!collapsed && userProfile.role === UserRole.STUDENT && (
           <Stack
             spacing={0.5}
             sx={{
               p: 1.5,
               bgcolor: "background.default",
               borderRadius: 2,
-              mb: 3,
             }}
           >
             <Typography variant="caption" color="text.secondary">
@@ -113,7 +203,7 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
 
       {/* Main Navigation */}
       <List sx={{ pt: 1, px: 1 }}>
-        {visibleNavItems.map((item) => {
+        {visibleNavItems.map((item: NavigationItem) => {
           const isSelected = pathname === item.href;
 
           return (
@@ -126,6 +216,8 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
                   onClick={handleItemClick}
                   sx={{
                     borderRadius: 1,
+                    justifyContent: collapsed ? "center" : "flex-start",
+                    px: collapsed ? 0 : 2,
                     "&.Mui-selected": {
                       backgroundColor: "primary.main",
                       color: "primary.contrastText",
@@ -138,15 +230,22 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: collapsed ? 0 : 40,
+                      justifyContent: "center",
+                    }}
+                  >
                     {getIconComponent(item.iconName)}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontWeight: isSelected ? 500 : 400,
-                    }}
-                  />
+                  {!collapsed && (
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{
+                        fontWeight: isSelected ? 500 : 400,
+                      }}
+                    />
+                  )}
                 </ListItemButton>
               </Tooltip>
             </ListItem>
@@ -169,18 +268,27 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
               onClick={handleItemClick}
               sx={{
                 borderRadius: 1,
+                justifyContent: collapsed ? "center" : "flex-start",
+                px: collapsed ? 0 : 2,
                 "&:hover": {
                   backgroundColor: "error.lighter",
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>
+              <ListItemIcon
+                sx={{
+                  minWidth: collapsed ? 0 : 40,
+                  justifyContent: "center",
+                }}
+              >
                 <Logout color="error" />
               </ListItemIcon>
-              <ListItemText
-                primary="Logout"
-                primaryTypographyProps={{ color: "error" }}
-              />
+              {!collapsed && (
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{ color: "error" }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         </ListItem>
