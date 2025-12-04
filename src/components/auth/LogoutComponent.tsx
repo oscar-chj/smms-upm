@@ -1,97 +1,61 @@
 "use client";
 
-import { logout } from "@/services/auth/auth";
-import { Alert, Box, CircularProgress, Typography } from "@mui/material";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import LogoutSkeleton from "@/components/ui/skeletons/LogoutSkeleton";
+import { Alert, Box, Typography } from "@mui/material";
+import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useUserStore } from "@/stores/userStore";
 
 /**
  * Component that handles the logout process and provides visual feedback
  */
 export default function LogoutComponent() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const clearUserProfile = useUserStore((state) => state.clearUserProfile);
 
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        // Clear the Zustand store first
-        clearUserProfile();
-
-        // Call the server logout action
-        const result = await logout();
-
-        // Check if result exists and has success property
-        if (result && result.success) {
-          // Remove the authentication cookie on client side as well
-          Cookies.remove("auth_token", { path: "/" });
-
-          // Show the logout screen briefly before redirecting
-          setTimeout(() => {
-            router.push("/auth/login");
-          }, 1500);
-        } else {
-          // Handle logout failure
-          setError(result?.message || "Failed to sign out properly");
-
-          // Still redirect after a delay in case of error
-          setTimeout(() => {
-            Cookies.remove("auth_token", { path: "/" });
-            router.push("/auth/login");
-          }, 3000);
-        }
+        // Sign out using NextAuth - it will automatically redirect to sign-in page
+        await signOut({
+          callbackUrl: "/auth/login",
+        });
       } catch (e) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Logout error:", e);
         setError("An unexpected error occurred while signing out");
-
-        // Force logout on client side even if server action failed
-        setTimeout(() => {
-          Cookies.remove("auth_token", { path: "/" });
-          router.push("/auth/login");
-        }, 3000);
       }
     };
 
     handleLogout();
+  }, []);
 
-    // Clean up any potential memory leaks
-    return () => {
-      // Any cleanup code if needed
-    };
-  }, [router, clearUserProfile]);
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        textAlign: "center",
-        p: 2,
-      }}
-    >
-      {error ? (
+  if (error) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          textAlign: "center",
+          p: 2,
+        }}
+      >
         <Alert severity="error" sx={{ mb: 4, maxWidth: 450 }}>
           {error}
         </Alert>
-      ) : (
-        <CircularProgress size={48} sx={{ mb: 4 }} />
-      )}
 
-      <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
-        {error ? "Error during sign out" : "Signing you out..."}
-      </Typography>
+        <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
+          Error during sign out
+        </Typography>
 
-      <Typography variant="body1" color="text.secondary">
-        {error
-          ? "Redirecting you to login page..."
-          : "Thank you for using the Student Merit Management System"}
-      </Typography>
-    </Box>
-  );
+        <Typography variant="body1" color="text.secondary">
+          Please try again
+        </Typography>
+      </Box>
+    );
+  }
+
+  return <LogoutSkeleton />;
 }

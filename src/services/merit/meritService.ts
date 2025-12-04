@@ -1,14 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { ApiResponse } from "@/types/api.types";
-
-interface MeritRecord {
-  id: string;
-  studentId: string;
-  eventId: string;
-  points: number;
-  date: Date;
-  description: string;
-}
+import { ApiResponse, MeritRecord } from "@/types/api.types";
 
 interface MeritSummary {
   totalPoints: number;
@@ -17,27 +7,46 @@ interface MeritSummary {
   collegeMerit: number;
   clubMerit: number;
   recentActivities: number;
+  rank: number;
+  totalStudents: number;
+  targetPoints: number;
+  progressPercentage: number;
+  targetAchieved: boolean;
+  remainingPoints: number;
+  exceededPoints: number;
 }
 
 class MeritService {
   async getStudentMeritSummary(
-    studentId: string
+    studentId?: string
   ): Promise<ApiResponse<MeritSummary>> {
     try {
-      // This would connect to your actual backend/database
-      // For now, return mock data structure
-      return {
-        success: true,
-        data: {
-          totalPoints: 0,
-          universityMerit: 0,
-          facultyMerit: 0,
-          collegeMerit: 0,
-          clubMerit: 0,
-          recentActivities: 0,
+      const url = new URL("/api/merits/summary", window.location.origin);
+      if (studentId) {
+        url.searchParams.set("studentId", studentId);
+      }
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errorData.error || "Failed to fetch merit summary",
+        };
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
+      console.error("Error fetching merit summary:", error);
       return {
         success: false,
         error: "Failed to fetch merit summary",
@@ -46,19 +55,45 @@ class MeritService {
   }
 
   async getStudentMeritRecords(
-    studentId: string,
-    options: { page: number; limit: number }
+    studentId?: string,
+    options: { page?: number; limit?: number } = {}
   ): Promise<ApiResponse<{ records: MeritRecord[]; total: number }>> {
     try {
-      // This would connect to your actual backend/database
-      return {
-        success: true,
-        data: {
-          records: [],
-          total: 0,
+      const url = new URL("/api/merits/records", window.location.origin);
+      if (studentId) {
+        url.searchParams.set("studentId", studentId);
+      }
+      if (options.page) {
+        url.searchParams.set("page", options.page.toString());
+      }
+      if (options.limit) {
+        url.searchParams.set("limit", options.limit.toString());
+      }
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errorData.error || "Failed to fetch merit records",
+        };
+      }
+
+      const data = await response.json();
+      return {
+        success: data.success,
+        data: data.data,
       };
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
+      console.error("Error fetching merit records:", error);
       return {
         success: false,
         error: "Failed to fetch merit records",

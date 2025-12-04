@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
+import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
+import { Geist, Geist_Mono } from "next/font/google";
 
 import theme from "@/theme/theme";
 import "./globals.css";
@@ -47,10 +48,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            {children}
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

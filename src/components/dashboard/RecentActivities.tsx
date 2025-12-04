@@ -1,8 +1,8 @@
 "use client";
 
-import DataService from "@/services/data/DataService";
+import meritService from "@/services/merit/meritService";
 import { EventCategory } from "@/types/api.types";
-import { formatDate } from "@/lib/dateUtils";
+import { formatDate, toDateString } from "@/lib/dateUtils";
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
 import { ArrowForward, Assignment } from "@mui/icons-material";
 import {
@@ -47,24 +47,36 @@ const RecentActivities = memo(function RecentActivities({
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
-    // Get student's recent merit records from DataService
-    const meritRecords = DataService.getStudentMeritRecords(studentId);
+    // Get student's recent merit records from API
+    const fetchActivities = async () => {
+      try {
+        const response = await meritService.getStudentMeritRecords(studentId, {
+          limit: 5,
+        });
 
-    // Convert merit records to activities format and get recent ones
-    const recentActivities = meritRecords
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5) // Show only last 5 activities
-      .map((record) => ({
-        id: record.id,
-        title: record.description,
-        category: record.category,
-        points: record.points,
-        date: record.date,
-        description: record.description,
-      }));
+        if (response.success && response.data) {
+          // Convert merit records to activities format
+          const recentActivities = response.data.records.map((record) => ({
+            id: record.id,
+            title: record.description,
+            category: record.category,
+            points: record.points,
+            date: toDateString(record.date),
+            description: record.description,
+          }));
 
-    setActivities(recentActivities);
+          setActivities(recentActivities);
+        }
+      } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
+        console.error("Error fetching recent activities:", error);
+      }
+    };
+
+    fetchActivities();
   }, [studentId]);
+
   // Handle empty state
   if (!activities || activities.length === 0) {
     return (

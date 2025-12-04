@@ -3,6 +3,16 @@
  */
 
 /**
+ * Convert Date object to ISO date string (YYYY-MM-DD)
+ * @param date - Date object or string
+ * @returns ISO date string
+ */
+export const toDateString = (date: Date | string): string => {
+  if (typeof date === "string") return date;
+  return date.toISOString().split("T")[0];
+};
+
+/**
  * Format a date string to a more readable format
  * @param dateString - ISO date string (YYYY-MM-DD)
  * @returns Formatted date (e.g., "May 15, 2025")

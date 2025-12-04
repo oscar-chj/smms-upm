@@ -4,6 +4,7 @@
 
 // Layout constants
 export const DRAWER_WIDTH = 280;
+export const DRAWER_WIDTH_COLLAPSED = 64;
 
 // Authentication constants
 export const AUTH_COOKIE_NAME = "auth_token";
