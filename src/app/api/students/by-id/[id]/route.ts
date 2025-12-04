@@ -1,8 +1,8 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Student } from "@/types/api.types";
 import { UserRole } from "@/types/auth.types";
+import { prisma } from "../../../../../../prisma/prisma";
 
 /**
  * GET /api/students/by-id/[id]
@@ -34,20 +34,35 @@ export async function GET(
       );
     }
 
+    // Ensure user is a student with required fields
+    if (
+      !user.studentId ||
+      !user.faculty ||
+      !user.year ||
+      !user.program ||
+      !user.enrollmentDate
+    ) {
+      return NextResponse.json(
+        { success: false, error: "User is not a student" },
+        { status: 400 }
+      );
+    }
+
     const student: Student = {
       id: user.id,
-      name: user.name,
+      name: user.name ?? "",
       email: user.email,
-      studentId: user.studentId || "",
-      faculty: user.faculty || "",
-      year: user.year || 0,
-      program: user.program || "",
+      emailVerified: user.emailVerified ?? false,
+      image: user.image,
+      role: UserRole.STUDENT,
+      studentId: user.studentId,
+      faculty: user.faculty,
+      year: user.year,
+      program: user.program,
       totalMeritPoints: user.totalMeritPoints,
-      enrollmentDate: user.enrollmentDate
-        ? user.enrollmentDate.toISOString().split("T")[0]
-        : "",
-      profileImage: user.image || undefined,
-      role: (user.role as UserRole) || UserRole.STUDENT,
+      enrollmentDate: user.enrollmentDate,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     return NextResponse.json({
@@ -55,6 +70,8 @@ export async function GET(
       data: student,
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching student data:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch student data" },
@@ -62,4 +79,3 @@ export async function GET(
     );
   }
 }
-

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../../../prisma/prisma";
 
 /**
  * POST /api/events/[id]/register
@@ -82,9 +82,7 @@ export async function POST(
 
     // Check if event is at capacity
     const registrationStatus =
-      event._count.registrations < event.capacity
-        ? "REGISTERED"
-        : "WAITLISTED";
+      event._count.registrations < event.capacity ? "REGISTERED" : "WAITLISTED";
 
     // Create registration
     const registration = await prisma.eventRegistration.create({
@@ -101,8 +99,11 @@ export async function POST(
         id: registration.id,
         eventId: registration.eventId,
         studentId: registration.studentId,
-        registrationDate: registration.registrationDate.toISOString().split("T")[0],
-        status: registration.status === "REGISTERED" ? "Registered" : "Waitlisted",
+        registrationDate: registration.registrationDate
+          .toISOString()
+          .split("T")[0],
+        status:
+          registration.status === "REGISTERED" ? "Registered" : "Waitlisted",
         attendanceMarked: registration.attendanceMarked,
         pointsAwarded: registration.pointsAwarded,
       },
@@ -112,6 +113,8 @@ export async function POST(
           : "Added to the waitlist for the event",
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error registering for event:", error);
     return NextResponse.json(
       { success: false, error: "Failed to register for event" },
@@ -119,4 +122,3 @@ export async function POST(
     );
   }
 }
-

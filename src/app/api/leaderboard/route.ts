@@ -1,7 +1,5 @@
-import { auth } from "@/auth";
 import { prisma } from "../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { EventCategory } from "@/types/api.types";
 
 /**
  * GET /api/leaderboard
@@ -66,7 +64,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort based on the requested criteria
-    let sortedData = [...leaderboardData];
+    const sortedData = [...leaderboardData];
     switch (sortBy) {
       case "university":
         sortedData.sort((a, b) => b.universityMerit - a.universityMerit);
@@ -89,6 +87,8 @@ export async function GET(request: NextRequest) {
       data: sortedData,
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching leaderboard:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch leaderboard" },
@@ -96,4 +96,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

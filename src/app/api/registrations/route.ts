@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../prisma/prisma";
+import { prisma, Prisma } from "../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 const mapPrismaStatusToFrontend = (status: string): string => {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const studentId = studentIdParam || user.id;
 
     // Build where clause
-    const where: any = { studentId };
+    const where: Prisma.EventRegistrationWhereInput = { studentId };
     if (eventIdParam) {
       where.eventId = eventIdParam;
     }
@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
       eventId: reg.eventId,
       studentId: reg.studentId,
       registrationDate: reg.registrationDate.toISOString().split("T")[0],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       status: mapPrismaStatusToFrontend(reg.status) as any,
       attendanceMarked: reg.attendanceMarked,
       pointsAwarded: reg.pointsAwarded,
@@ -109,6 +110,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching registrations:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch registrations" },
@@ -116,4 +119,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

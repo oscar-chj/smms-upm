@@ -1,11 +1,9 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../../prisma/prisma";
-import { NextRequest, NextResponse } from "next/server";
 import { EventCategory } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../../prisma/prisma";
 
-const mapPrismaCategoryToFrontend = (
-  category: string
-): EventCategory => {
+const mapPrismaCategoryToFrontend = (category: string): EventCategory => {
   switch (category) {
     case "UNIVERSITY":
       return EventCategory.UNIVERSITY;
@@ -110,6 +108,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching merit records:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch merit records" },
@@ -117,4 +117,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

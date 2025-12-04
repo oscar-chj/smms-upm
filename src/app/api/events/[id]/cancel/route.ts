@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../../../prisma/prisma";
 
 /**
  * POST /api/events/[id]/cancel
@@ -96,6 +96,8 @@ export async function POST(
       message: "Registration cancelled successfully",
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error cancelling registration:", error);
     return NextResponse.json(
       { success: false, error: "Failed to cancel registration" },
@@ -103,4 +105,3 @@ export async function POST(
     );
   }
 }
-

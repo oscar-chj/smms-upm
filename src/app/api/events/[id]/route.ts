@@ -1,39 +1,6 @@
-import { auth } from "@/auth";
-import { prisma } from "../../../../../prisma/prisma";
+import { Event, EventCategory, EventStatus } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
-import { Event, EventCategory } from "@/types/api.types";
-
-// Map Prisma enum to frontend enum
-const mapPrismaCategoryToFrontend = (category: string): EventCategory => {
-  switch (category) {
-    case "UNIVERSITY":
-      return EventCategory.UNIVERSITY;
-    case "FACULTY":
-      return EventCategory.FACULTY;
-    case "COLLEGE":
-      return EventCategory.COLLEGE;
-    case "CLUB":
-      return EventCategory.CLUB;
-    default:
-      return EventCategory.UNIVERSITY;
-  }
-};
-
-// Map Prisma status to frontend status
-const mapPrismaStatusToFrontend = (status: string): string => {
-  switch (status) {
-    case "UPCOMING":
-      return "Upcoming";
-    case "ONGOING":
-      return "Ongoing";
-    case "COMPLETED":
-      return "Completed";
-    case "CANCELLED":
-      return "Cancelled";
-    default:
-      return "Upcoming";
-  }
-};
+import { prisma } from "../../../../../prisma/prisma";
 
 /**
  * GET /api/events/[id]
@@ -71,16 +38,18 @@ export async function GET(
       id: event.id,
       title: event.title,
       description: event.description,
-      date: event.date.toISOString().split("T")[0],
+      date: event.date,
       time: event.time,
       location: event.location,
       organizer: event.organizer,
-      category: mapPrismaCategoryToFrontend(event.category),
+      category: event.category as EventCategory,
       points: event.points,
       capacity: event.capacity,
       registeredCount: event._count.registrations,
-      status: mapPrismaStatusToFrontend(event.status) as any,
-      imageUrl: event.imageUrl || undefined,
+      status: event.status as EventStatus,
+      imageUrl: event.imageUrl,
+      createdAt: event.createdAt,
+      updatedAt: event.updatedAt,
     };
 
     return NextResponse.json({
@@ -88,6 +57,8 @@ export async function GET(
       data: transformedEvent,
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching event:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch event" },
@@ -95,4 +66,3 @@ export async function GET(
     );
   }
 }
-

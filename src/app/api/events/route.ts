@@ -1,37 +1,6 @@
-import { auth } from "@/auth";
 import { prisma } from "../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Event, EventCategory, EventStatus } from "@/types/api.types";
-
-const mapPrismaCategoryToFrontend = (category: string): EventCategory => {
-  switch (category) {
-    case "UNIVERSITY":
-      return EventCategory.UNIVERSITY;
-    case "FACULTY":
-      return EventCategory.FACULTY;
-    case "COLLEGE":
-      return EventCategory.COLLEGE;
-    case "CLUB":
-      return EventCategory.CLUB;
-    default:
-      return EventCategory.UNIVERSITY;
-  }
-};
-
-const mapPrismaStatusToFrontend = (status: string): EventStatus => {
-  switch (status) {
-    case "UPCOMING":
-      return "Upcoming";
-    case "ONGOING":
-      return "Ongoing";
-    case "COMPLETED":
-      return "Completed";
-    case "CANCELLED":
-      return "Cancelled";
-    default:
-      return "Upcoming";
-  }
-};
+import { Event } from "@/types/api.types";
 
 /**
  * GET /api/events
@@ -52,6 +21,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     if (category) {
       const prismaCategory = category.toUpperCase();
@@ -91,20 +61,23 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const transformedEvents: Event[] = events.map((event) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const transformedEvents: Event[] = events.map((event: any) => ({
       id: event.id,
       title: event.title,
       description: event.description,
-      date: event.date.toISOString().split("T")[0], // Convert to YYYY-MM-DD
+      date: event.date,
       time: event.time,
       location: event.location,
       organizer: event.organizer,
-      category: mapPrismaCategoryToFrontend(event.category),
+      category: event.category,
       points: event.points,
       capacity: event.capacity,
       registeredCount: event._count.registrations,
-      status: mapPrismaStatusToFrontend(event.status),
-      imageUrl: event.imageUrl || undefined,
+      status: event.status,
+      imageUrl: event.imageUrl,
+      createdAt: event.createdAt,
+      updatedAt: event.updatedAt,
     }));
 
     return NextResponse.json({
@@ -118,6 +91,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching events:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch events" },
@@ -125,4 +100,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

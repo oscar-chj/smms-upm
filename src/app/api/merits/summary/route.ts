@@ -1,24 +1,6 @@
 import { auth } from "@/auth";
-import { prisma } from "../../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { EventCategory } from "@/types/api.types";
-
-const mapPrismaCategoryToFrontend = (
-  category: string
-): EventCategory => {
-  switch (category) {
-    case "UNIVERSITY":
-      return EventCategory.UNIVERSITY;
-    case "FACULTY":
-      return EventCategory.FACULTY;
-    case "COLLEGE":
-      return EventCategory.COLLEGE;
-    case "CLUB":
-      return EventCategory.CLUB;
-    default:
-      return EventCategory.UNIVERSITY;
-  }
-};
+import { prisma } from "../../../../../prisma/prisma";
 
 /**
  * GET /api/merits/summary
@@ -146,6 +128,8 @@ export async function GET(request: NextRequest) {
       data: summary,
     });
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error fetching merit summary:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch merit summary" },
@@ -153,4 +137,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

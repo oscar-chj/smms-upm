@@ -56,6 +56,10 @@ export interface MeritSummary {
   facultyMerit: number;
   collegeMerit: number;
   clubMerit: number;
+  targetAchieved: boolean;
+  remainingPoints: number;
+  exceededPoints: number;
+  progressPercentage: number;
   recentActivities: MeritActivity[];
   upcomingEvents: MeritEvent[];
 }
