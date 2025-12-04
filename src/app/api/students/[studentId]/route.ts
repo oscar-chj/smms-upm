@@ -10,7 +10,7 @@ import { prisma } from "../../../../../prisma/prisma";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } }
+  { params }: { params: Promise<{ studentId: string }> }
 ) {
   try {
     // Get current authenticated user (for authorization check)
@@ -22,9 +22,10 @@ export async function GET(
       );
     }
 
+    const { studentId } = await params;
     // Find user by studentId
     const user = await prisma.user.findUnique({
-      where: { studentId: params.studentId },
+      where: { studentId },
     });
 
     if (!user) {

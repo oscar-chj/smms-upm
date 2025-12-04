@@ -8,7 +8,7 @@ import { prisma } from "../../../../../../prisma/prisma";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current authenticated user
@@ -33,7 +33,7 @@ export async function POST(
       );
     }
 
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const studentId = user.id;
 
     // Find the registration

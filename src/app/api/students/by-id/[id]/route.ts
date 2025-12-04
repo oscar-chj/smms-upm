@@ -10,7 +10,7 @@ import { prisma } from "../../../../../../prisma/prisma";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current authenticated user (for authorization check)
@@ -22,9 +22,10 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     // Find user by internal ID
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!user) {
