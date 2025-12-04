@@ -1,39 +1,54 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import MeritSummary from "@/components/merits/MeritSummary";
-import DataService from "@/services/data/DataService";
-import authService from "@/services/auth/authService";
+import meritService from "@/services/merit/meritService";
 import { Alert, Box, Button, CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 
+interface MeritSummaryData {
+  totalPoints: number;
+  targetPoints: number;
+  universityMerit: number;
+  facultyMerit: number;
+  collegeMerit: number;
+  clubMerit: number;
+  recentActivities: number;
+  rank: number;
+  totalStudents: number;
+  progressPercentage: number;
+  targetAchieved: boolean;
+  remainingPoints: number;
+  exceededPoints: number;
+}
+
 export default function MeritsPage() {
-  const [meritData, setMeritData] = useState<ReturnType<
-    typeof DataService.getStudentMeritSummary
-  > | null>(null);
+  const [meritData, setMeritData] = useState<MeritSummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    // Simulate fetching merit data from centralized service
+    // Fetch merit data from API
     const fetchMeritData = async () => {
       try {
         setIsLoading(true);
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Get current authenticated user
-        const currentUser = await authService.getCurrentUser();
-        if (!currentUser) {
-          setError("No authenticated user found. Please log in again.");
-          return;
+        // Get merit data from API (will use current user from NextAuth session)
+        // If studentId is not provided, the API will use the current authenticated user
+        const response = await meritService.getStudentMeritSummary();
+
+        if (response.success && response.data) {
+          setMeritData(response.data);
+        } else {
+          if (response.error?.includes("Unauthorized")) {
+            setError("No authenticated user found. Please log in again.");
+          } else {
+            setError(response.error || "Failed to load merit data.");
+          }
         }
-
-        // Get merit data from centralized service using authenticated user's ID
-        const data = DataService.getStudentMeritSummary(currentUser.id);
-        setMeritData(data);
       } catch (err) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching merit data:", err);
-        setError("Failed to load merit data. Please try again.");
+        setError("Failed to load merit data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -49,24 +64,22 @@ export default function MeritsPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Merit Points">
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: 400,
-          }}
-        >
-          <CircularProgress size={60} />
-        </Box>
-      </DashboardLayout>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
     );
   }
 
   if (error || !meritData) {
     return (
-      <DashboardLayout title="Merit Points">
+      <Box>
         <Alert severity="error" sx={{ mb: 3 }}>
           {error ||
             "Unable to load merit data. Please check if event data is available."}
@@ -74,13 +87,11 @@ export default function MeritsPage() {
         <Button variant="contained" onClick={() => window.location.reload()}>
           Retry
         </Button>
-      </DashboardLayout>
+      </Box>
     );
   }
 
   return (
-    <DashboardLayout title="Merit Points">
-      <MeritSummary meritData={meritData} onViewReports={handleViewReports} />
-    </DashboardLayout>
+    <MeritSummary meritData={meritData} onViewReports={handleViewReports} />
   );
 }

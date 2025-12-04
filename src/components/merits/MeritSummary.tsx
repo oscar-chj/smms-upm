@@ -224,7 +224,7 @@ export default function MeritSummary({
                 }}
               >
                 Merit Points Earned
-              </Typography>{" "}
+              </Typography>
               {/* Progress message */}
               <Box
                 sx={{
@@ -242,7 +242,6 @@ export default function MeritSummary({
                     lineHeight: 1.5,
                   }}
                 >
-                  {" "}
                   {meritData.targetAchieved
                     ? meritData.exceededPoints > 0
                       ? `Outstanding! You've exceeded your goal by ${meritData.exceededPoints} points.`
@@ -286,7 +285,7 @@ export default function MeritSummary({
                 >
                   out of {meritData.totalStudents} students
                 </Typography>
-              </Box>{" "}
+              </Box>
               <Chip
                 label={
                   meritData.targetAchieved
@@ -316,7 +315,7 @@ export default function MeritSummary({
             </Box>
           </Box>
         </CardContent>
-      </Card>{" "}
+      </Card>
       {/* Progress Insight */}
       <Alert
         severity={meritData.targetAchieved ? "success" : "info"}
@@ -347,7 +346,7 @@ export default function MeritSummary({
             ? meritData.exceededPoints > 0
               ? `You've exceeded your target by ${meritData.exceededPoints} points.`
               : "You've successfully reached your merit goal."
-            : `${meritData.remainingPoints} more points needed to reach your goal.`}{" "}
+            : `${meritData.remainingPoints} more points needed to reach your goal.`}
         </Typography>
         {!meritData.targetAchieved && (
           <Typography
@@ -389,7 +388,7 @@ export default function MeritSummary({
             View Detailed Report
           </Button>
         </Box>
-      )}{" "}
+      )}
       {/* Merit Categories */}
       <Typography
         variant="h5"

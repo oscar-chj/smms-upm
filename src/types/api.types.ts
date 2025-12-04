@@ -1,3 +1,8 @@
+/**
+ * Generic API response types
+ * Used across all API endpoints
+ */
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;
@@ -21,91 +26,8 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
   };
 }
 
-// Student Types
-export interface Student {
-  id: string;
-  name: string;
-  email: string;
-  studentId: string;
-  faculty: string;
-  year: number;
-  program: string;
-  totalMeritPoints: number;
-  enrollmentDate: string;
-  profileImage?: string;
-  role: import("./auth.types").UserRole;
-}
-
-export interface StudentFilters {
-  faculty?: string;
-  year?: number;
-  program?: string;
-  search?: string;
-}
-
-// Event Types
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  organizer: string;
-  category: EventCategory;
-  points: number;
-  capacity: number;
-  registeredCount: number;
-  status: EventStatus;
-  imageUrl?: string;
-}
-
-// Convert from type to enum object for EventCategory
-export enum EventCategory {
-  UNIVERSITY = "University",
-  FACULTY = "Faculty",
-  COLLEGE = "College",
-  CLUB = "Club",
-}
-
-export type EventStatus = "Upcoming" | "Ongoing" | "Completed" | "Cancelled";
-
-export interface EventFilters {
-  category?: EventCategory;
-  status?: EventStatus;
-  startDate?: string;
-  endDate?: string;
-  search?: string;
-  minPoints?: number;
-  maxPoints?: number;
-}
-
-// Registration Types
-export interface EventRegistration {
-  id: string;
-  eventId: string;
-  studentId: string;
-  registrationDate: string;
-  status: RegistrationStatus;
-  attendanceMarked: boolean;
-  pointsAwarded: number;
-}
-
-export type RegistrationStatus =
-  | "Registered"
-  | "Waitlisted"
-  | "Cancelled"
-  | "Attended";
-
-// Merit Types
-export interface MeritRecord {
-  id: string;
-  studentId: string;
-  eventId?: string;
-  category: EventCategory;
-  points: number;
-  description: string;
-  date: string;
-  isVerified?: boolean; // Optional - verification not required
-  meritType?: string; // Type of merit entry: "University Merit", "Faculty Merit", "College Merit", "Club Merit"
-}
+// Re-export all entity types for convenience
+export * from "./user.types";
+export * from "./event.types";
+export * from "./registration.types";
+export * from "./merit.types";

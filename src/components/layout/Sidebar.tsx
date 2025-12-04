@@ -1,6 +1,6 @@
 "use client";
 
-import { mainNavigationItems } from "@/data/navigationData";
+import ProfileAvatar from "@/components/common/ProfileAvatar";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { getIconComponent } from "@/lib/iconUtils";
 import { UserRole } from "@/types/auth.types";
@@ -20,7 +20,58 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useMemo } from "react";
-import ProfileAvatar from "@/components/common/ProfileAvatar";
+
+export interface NavigationItem {
+  text: string;
+  iconName: string; // Store icon name instead of JSX
+  href: string;
+  tooltip?: string;
+  roles?: UserRole[];
+}
+
+/**
+ * Navigation items defined in component to avoid SSR/hydration issues
+ */
+const mainNavigationItems: NavigationItem[] = [
+  {
+    text: "Dashboard",
+    iconName: "Dashboard",
+    href: "/dashboard",
+    tooltip: "View your dashboard overview",
+  },
+  {
+    text: "Merit Points",
+    iconName: "AssessmentOutlined",
+    href: "/dashboard/merits",
+    tooltip: "View and track your merit points",
+  },
+  {
+    text: "Events",
+    iconName: "EventNote",
+    href: "/dashboard/events",
+    tooltip: "Browse and register for university events",
+  },
+  {
+    text: "Leaderboard",
+    iconName: "Leaderboard",
+    href: "/dashboard/leaderboard",
+    tooltip: "View student merit rankings",
+  },
+  {
+    text: "Reports",
+    iconName: "Assessment",
+    href: "/dashboard/reports",
+    tooltip: "Generate and view merit reports",
+    roles: [UserRole.STUDENT],
+  },
+  {
+    text: "Upload Merit",
+    iconName: "Upload",
+    href: "/dashboard/admin/merit-upload",
+    tooltip: "Upload merit points for events",
+    roles: [UserRole.ADMIN],
+  },
+];
 
 /**
  * Sidebar component props
@@ -37,18 +88,26 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
   const { student, isLoading } = useUserProfile();
 
   // Memoize user profile object to prevent unnecessary re-renders
-  const userProfile = useMemo(() => ({
-    name: student?.name || (isLoading ? "Loading..." : "User"),
-    role: student?.role || UserRole.STUDENT,
-    avatar: student?.profileImage || "/default-avatar.png",
-    studentId: student?.studentId || (isLoading ? "..." : "000000"),
-    faculty: student?.faculty || (isLoading ? "Loading..." : "Unknown Faculty"),
-    year: student?.year?.toString() || (isLoading ? "..." : "0"),
-  }), [student, isLoading]);
+  const userProfile = useMemo(
+    () => ({
+      name: student?.name || (isLoading ? "Loading..." : "User"),
+      role: student?.role || UserRole.STUDENT,
+      avatar: student?.image || "/default-avatar.png",
+      studentId: student?.studentId || (isLoading ? "..." : "000000"),
+      faculty:
+        student?.faculty || (isLoading ? "Loading..." : "Unknown Faculty"),
+      year: student?.year?.toString() || (isLoading ? "..." : "0"),
+    }),
+    [student, isLoading]
+  );
 
   // Filter navigation items based on user role
-  const visibleNavItems = mainNavigationItems.filter(
-    (item) => !item.roles || item.roles.includes(userProfile.role)
+  const visibleNavItems = useMemo(
+    () =>
+      mainNavigationItems.filter(
+        (item) => !item.roles || item.roles.includes(userProfile.role)
+      ),
+    [userProfile.role]
   );
 
   const handleItemClick = () => {
@@ -68,12 +127,13 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
             alignItems: "center",
             mb: 2,
           }}
-        >          <ProfileAvatar
+        >
+          <ProfileAvatar
             src={userProfile.avatar}
             alt={userProfile.name}
-            sx={{ 
-              width: 80, 
-              height: 80, 
+            sx={{
+              width: 80,
+              height: 80,
               mb: 1.5,
             }}
           />
@@ -113,7 +173,7 @@ const Sidebar = memo(function Sidebar({ onItemClick }: SidebarProps) {
 
       {/* Main Navigation */}
       <List sx={{ pt: 1, px: 1 }}>
-        {visibleNavItems.map((item) => {
+        {visibleNavItems.map((item: NavigationItem) => {
           const isSelected = pathname === item.href;
 
           return (

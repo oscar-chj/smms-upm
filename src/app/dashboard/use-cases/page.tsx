@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import EventListService from "@/services/event/eventListService";
 import {
   Assessment,
@@ -206,208 +205,206 @@ export default function UseCasesOverviewPage() {
   ).length;
 
   return (
-    <DashboardLayout title="Use Cases Overview">
-      <Box sx={{ width: "100%" }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Student Merit Management System
-          </Typography>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Use Cases Implementation Overview
-          </Typography>
-          <Alert severity="success" sx={{ mt: 2 }}>
-            <Typography variant="body1">
-              <strong>Implementation Complete!</strong> All {implementedCount}
-              use cases have been implemented with core logic and sample data.
-            </Typography>
-          </Alert>
-        </Box>
-
-        {/* System Status */}
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              System Status
-            </Typography>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: 2,
-              }}
-            >
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h3" color="primary" fontWeight="bold">
-                  {implementedCount}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Use Cases Implemented
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h3" color="success.main" fontWeight="bold">
-                  4
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Merit Categories
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h3" color="warning.main" fontWeight="bold">
-                  150
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Target Merit Points
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h3" color="info.main" fontWeight="bold">
-                  {cacheStatus?.isValid ? "✓" : "✗"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Event Cache Status
-                </Typography>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Merit Categories */}
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Merit Categories
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Chip
-                label="International/National/University Merit"
-                color="primary"
-              />
-              <Chip label="Faculty Merit" color="secondary" />
-              <Chip label="College Merit" color="info" />
-              <Chip label="Association/Club Merit" color="warning" />
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Use Cases Grid */}
-        <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
-          Implemented Use Cases
+    <Box sx={{ width: "100%" }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Student Merit Management System
         </Typography>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-            gap: 3,
-          }}
-        >
-          {useCases.map((useCase) => (
-            <Card
-              key={useCase.id}
-              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  <Box sx={{ mr: 2 }}>{useCase.icon}</Box>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" component="h3">
-                      {useCase.id}: {useCase.title}
-                    </Typography>
-                    <Chip
-                      label={useCase.status}
-                      color={getStatusColor(useCase.status)}
-                      size="small"
-                      icon={getStatusIcon(useCase.status)}
-                    />
-                  </Box>
-                </Box>
-
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  {useCase.description}
-                </Typography>
-
-                <Typography variant="subtitle2" gutterBottom>
-                  Key Features:
-                </Typography>
-                <List dense>
-                  {useCase.features.map((feature, index) => (
-                    <ListItem key={index} sx={{ py: 0 }}>
-                      <ListItemIcon sx={{ minWidth: 24 }}>
-                        <CheckCircle fontSize="small" color="success" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={feature}
-                        primaryTypographyProps={{ variant: "body2" }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-
-              <Divider />
-
-              <Box sx={{ p: 2 }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => handleNavigate(useCase.route)}
-                  disabled={!useCase.route}
-                >
-                  {useCase.route ? "View Implementation" : "Not Available"}
-                </Button>
-              </Box>
-            </Card>
-          ))}
-        </Box>
-
-        {/* Technical Notes */}
-        <Card sx={{ mt: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Technical Implementation Notes
-            </Typography>
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <Info color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Sample Data"
-                  secondary="All implementations use realistic sample data for demonstration purposes. In production, these would connect to actual APIs and databases."
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <Info color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Caching System"
-                  secondary="Event list caching is implemented with 15-minute expiry and fallback mechanisms for offline scenarios."
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <Info color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Error Handling"
-                  secondary="Comprehensive error handling with user-friendly messages and retry mechanisms throughout the application."
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <Info color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Responsive Design"
-                  secondary="All pages are built with responsive design principles and work across desktop, tablet, and mobile devices."
-                />
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          Use Cases Implementation Overview
+        </Typography>
+        <Alert severity="success" sx={{ mt: 2 }}>
+          <Typography variant="body1">
+            <strong>Implementation Complete!</strong> All {implementedCount}
+            use cases have been implemented with core logic and sample data.
+          </Typography>
+        </Alert>
       </Box>
-    </DashboardLayout>
+
+      {/* System Status */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            System Status
+          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h3" color="primary" fontWeight="bold">
+                {implementedCount}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Use Cases Implemented
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h3" color="success.main" fontWeight="bold">
+                4
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Merit Categories
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h3" color="warning.main" fontWeight="bold">
+                150
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Target Merit Points
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="h3" color="info.main" fontWeight="bold">
+                {cacheStatus?.isValid ? "✓" : "✗"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Event Cache Status
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Merit Categories */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Merit Categories
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Chip
+              label="International/National/University Merit"
+              color="primary"
+            />
+            <Chip label="Faculty Merit" color="secondary" />
+            <Chip label="College Merit" color="info" />
+            <Chip label="Association/Club Merit" color="warning" />
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Use Cases Grid */}
+      <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+        Implemented Use Cases
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+          gap: 3,
+        }}
+      >
+        {useCases.map((useCase) => (
+          <Card
+            key={useCase.id}
+            sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+          >
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <Box sx={{ mr: 2 }}>{useCase.icon}</Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" component="h3">
+                    {useCase.id}: {useCase.title}
+                  </Typography>
+                  <Chip
+                    label={useCase.status}
+                    color={getStatusColor(useCase.status)}
+                    size="small"
+                    icon={getStatusIcon(useCase.status)}
+                  />
+                </Box>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" paragraph>
+                {useCase.description}
+              </Typography>
+
+              <Typography variant="subtitle2" gutterBottom>
+                Key Features:
+              </Typography>
+              <List dense>
+                {useCase.features.map((feature, index) => (
+                  <ListItem key={index} sx={{ py: 0 }}>
+                    <ListItemIcon sx={{ minWidth: 24 }}>
+                      <CheckCircle fontSize="small" color="success" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={feature}
+                      primaryTypographyProps={{ variant: "body2" }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+
+            <Divider />
+
+            <Box sx={{ p: 2 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => handleNavigate(useCase.route)}
+                disabled={!useCase.route}
+              >
+                {useCase.route ? "View Implementation" : "Not Available"}
+              </Button>
+            </Box>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Technical Notes */}
+      <Card sx={{ mt: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Technical Implementation Notes
+          </Typography>
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <Info color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Sample Data"
+                secondary="All implementations use realistic sample data for demonstration purposes. In production, these would connect to actual APIs and databases."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <Info color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Caching System"
+                secondary="Event list caching is implemented with 15-minute expiry and fallback mechanisms for offline scenarios."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <Info color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Error Handling"
+                secondary="Comprehensive error handling with user-friendly messages and retry mechanisms throughout the application."
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <Info color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Responsive Design"
+                secondary="All pages are built with responsive design principles and work across desktop, tablet, and mobile devices."
+              />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

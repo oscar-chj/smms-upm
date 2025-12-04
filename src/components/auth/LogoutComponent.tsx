@@ -18,6 +18,8 @@ export default function LogoutComponent() {
           callbackUrl: "/auth/login",
         });
       } catch (e) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Logout error:", e);
         setError("An unexpected error occurred while signing out");
       }

@@ -1,4 +1,23 @@
-import { EventCategory } from "./api.types";
+/**
+ * Merit-related type definitions
+ * Matches Prisma MeritRecord model
+ */
+
+import type { EventCategory } from "./event.types";
+
+export interface MeritRecord {
+  id: string;
+  studentId: string;
+  eventId?: string | null;
+  category: EventCategory;
+  points: number;
+  description: string;
+  date: Date;
+  isVerified: boolean;
+  meritType?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * Interface representing a merit activity
@@ -10,7 +29,6 @@ export interface MeritActivity {
   points: number;
   date: string;
   description?: string;
-  // Note: verification fields removed as verification is not required
 }
 
 /**
@@ -38,6 +56,10 @@ export interface MeritSummary {
   facultyMerit: number;
   collegeMerit: number;
   clubMerit: number;
+  targetAchieved: boolean;
+  remainingPoints: number;
+  exceededPoints: number;
+  progressPercentage: number;
   recentActivities: MeritActivity[];
   upcomingEvents: MeritEvent[];
 }
@@ -52,12 +74,4 @@ export interface CreateMeritRecordRequest {
   points: number;
   description: string;
   date: string;
-}
-
-/**
- * Interface for merit verification request (deprecated - verification not required)
- */
-export interface VerifyMeritRecordRequest {
-  recordId: string;
-  verifiedBy?: string; // Optional since verification is not required
 }

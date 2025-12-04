@@ -1,7 +1,7 @@
 "use client";
 
 import { DRAWER_WIDTH } from "@/lib/constants";
-import authService from "@/services/auth/authService";
+import { useSession } from "next-auth/react";
 import { Menu as MenuIcon } from "@mui/icons-material";
 import {
   AppBar,
@@ -39,24 +39,15 @@ const DashboardLayout = memo(function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setCurrentUserName] = useState<string>("User");
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));  useEffect(() => {
-    // Get current user name for display
-    const getCurrentUserName = async () => {
-      try {
-        const user = await authService.getCurrentUser();
-        if (user) {
-          setCurrentUserName(user.name);
-        } else {
-          console.warn("No authenticated user found in DashboardLayout");
-          // Don't fallback to default user - this causes admin to become user 1
-        }
-      } catch (error) {
-        console.error("Error getting current user name:", error);
-      }
-    };
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { data: session } = useSession();
 
-    getCurrentUserName();
-  }, []);
+  useEffect(() => {
+    // Update current user name from NextAuth session
+    if (session?.user?.name) {
+      setCurrentUserName(session.user.name);
+    }
+  }, [session]);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -151,10 +142,9 @@ const DashboardLayout = memo(function DashboardLayout({
             px: { xs: 2, sm: 4 },
             pb: 4,
             backgroundColor: "background.default",
-            overflow: "auto", // Allow scrolling in main content area
           }}
         >
-          <Container maxWidth="lg" sx={{ height: "100%" }}>
+          <Container maxWidth="lg" sx={{ height: "100%", my: 4 }}>
             {children}
           </Container>
         </Box>
