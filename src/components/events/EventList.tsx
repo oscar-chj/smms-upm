@@ -1,6 +1,7 @@
 "use client";
 
-import { ErrorDisplay, LoadingDisplay } from "@/components/ui/ErrorDisplay";
+import { ErrorDisplay } from "@/components/ui/ErrorDisplay";
+import EventListSkeleton from "@/components/ui/skeletons/EventListSkeleton";
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
 import { formatDate, toDateString } from "@/lib/dateUtils";
 import EventListService from "@/services/event/eventListService";
@@ -372,7 +373,7 @@ export default function EventList({
     appliedFilters.organizer !== "";
 
   if (isLoading) {
-    return <LoadingDisplay message="Loading events..." />;
+    return <EventListSkeleton />;
   }
 
   if (error) {

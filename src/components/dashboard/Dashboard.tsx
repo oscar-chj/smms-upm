@@ -1,6 +1,7 @@
 "use client";
 
-import { ErrorDisplay, LoadingDisplay } from "@/components/ui/ErrorDisplay";
+import { ErrorDisplay } from "@/components/ui/ErrorDisplay";
+import DashboardSkeleton from "@/components/ui/skeletons/DashboardSkeleton";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import eventService from "@/services/event/eventService";
 import { Event, EventStatus } from "@/types/api.types";
@@ -38,7 +39,7 @@ export default function Dashboard() {
   }, []);
 
   if (isLoading) {
-    return <LoadingDisplay message="Loading your dashboard..." />;
+    return <DashboardSkeleton />;
   }
 
   if (error || !student || !meritSummary) {

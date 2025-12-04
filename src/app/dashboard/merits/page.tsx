@@ -1,8 +1,9 @@
 "use client";
 
 import MeritSummary from "@/components/merits/MeritSummary";
+import MeritSummarySkeleton from "@/components/ui/skeletons/MeritSummarySkeleton";
 import meritService from "@/services/merit/meritService";
-import { Alert, Box, Button, CircularProgress } from "@mui/material";
+import { Alert, Box, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 
 interface MeritSummaryData {
@@ -63,18 +64,7 @@ export default function MeritsPage() {
   };
 
   if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: 400,
-        }}
-      >
-        <CircularProgress size={60} />
-      </Box>
-    );
+    return <MeritSummarySkeleton />;
   }
 
   if (error || !meritData) {

@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Box, Paper, Typography, Button } from "@mui/material";
 import Link from "next/link";
 import GlobeIcon from "@/components/common/GlobeIcon";
+import AuthSkeleton from "@/components/ui/skeletons/AuthSkeleton";
 import { Suspense } from "react";
 
 // Error messages mapping
@@ -197,20 +198,7 @@ function AuthErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <Suspense
-      fallback={
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-          }}
-        >
-          <Typography>Loading...</Typography>
-        </Box>
-      }
-    >
+    <Suspense fallback={<AuthSkeleton />}>
       <AuthErrorContent />
     </Suspense>
   );

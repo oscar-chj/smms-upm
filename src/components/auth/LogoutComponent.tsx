@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Box, CircularProgress, Typography } from "@mui/material";
+import LogoutSkeleton from "@/components/ui/skeletons/LogoutSkeleton";
+import { Alert, Box, Typography } from "@mui/material";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
@@ -28,35 +29,33 @@ export default function LogoutComponent() {
     handleLogout();
   }, []);
 
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        textAlign: "center",
-        p: 2,
-      }}
-    >
-      {error ? (
+  if (error) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          textAlign: "center",
+          p: 2,
+        }}
+      >
         <Alert severity="error" sx={{ mb: 4, maxWidth: 450 }}>
           {error}
         </Alert>
-      ) : (
-        <CircularProgress size={48} sx={{ mb: 4 }} />
-      )}
 
-      <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
-        {error ? "Error during sign out" : "Signing you out..."}
-      </Typography>
+        <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
+          Error during sign out
+        </Typography>
 
-      <Typography variant="body1" color="text.secondary">
-        {error
-          ? "Please try again"
-          : "Thank you for using the Student Merit Management System"}
-      </Typography>
-    </Box>
-  );
+        <Typography variant="body1" color="text.secondary">
+          Please try again
+        </Typography>
+      </Box>
+    );
+  }
+
+  return <LogoutSkeleton />;
 }
