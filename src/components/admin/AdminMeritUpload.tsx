@@ -456,7 +456,7 @@ export default function AdminMeritUpload({
                         mb: 1,
                       }}
                     >
-                      <Typography variant="h6">{event.title}</Typography>{" "}
+                      <Typography variant="h6">{event.title}</Typography>
                       <Chip
                         label={getCategoryDisplayName(event.category)}
                         size="small"
@@ -703,7 +703,6 @@ export default function AdminMeritUpload({
                     </FormControl>
                   </TableCell>
                   <TableCell>
-                    {" "}
                     <Chip
                       label={entry.meritType}
                       size="small"
@@ -853,11 +852,9 @@ export default function AdminMeritUpload({
             Date: <strong>{selectedEvent?.date}</strong>
           </Typography>
         </Box>
-      </Box>      <Box sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "center" }}>
-        <Button 
-          variant="contained" 
-          onClick={() => router.push("/dashboard")}
-        >
+      </Box>{" "}
+      <Box sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "center" }}>
+        <Button variant="contained" onClick={() => router.push("/dashboard")}>
           Back to Dashboard
         </Button>
         <Button

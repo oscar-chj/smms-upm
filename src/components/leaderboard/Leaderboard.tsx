@@ -9,6 +9,7 @@ import {
   CardContent,
   Chip,
   Paper,
+  Skeleton,
   Tab,
   Table,
   TableBody,
@@ -38,7 +39,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`leaderboard-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+      {value === index && <Box>{children}</Box>}
     </div>
   );
 }
@@ -81,12 +82,14 @@ async function getCurrentUserRanking(
   try {
     const response = await fetch(`/api/leaderboard?sortBy=${sortBy}`);
     if (!response.ok) return null;
-    
+
     const data = await response.json();
     if (!data.success || !data.data) return null;
-    
+
     const sortedData = data.data;
-    const userIndex = sortedData.findIndex((entry) => entry.id === currentUserId);
+    const userIndex = sortedData.findIndex(
+      (entry) => entry.id === currentUserId
+    );
 
     if (userIndex === -1) return null;
 
@@ -135,7 +138,7 @@ function CurrentUserRanking({
 
   useEffect(() => {
     if (!isStudent) return;
-    
+
     getCurrentUserRanking(currentUserId, sortBy).then(setRanking);
   }, [currentUserId, sortBy, isStudent]);
 
@@ -209,10 +212,54 @@ function LeaderboardTable({
   const displayData = sortedData.slice(0, 10);
 
   if (isLoading) {
-    return <div>Loading leaderboard...</div>;
+    return (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
+              <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
+              <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
+              <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
+              <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+                Points
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {[...Array(10)].map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton variant="circular" width={32} height={32} />
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Skeleton variant="circular" width={32} height={32} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton width="60%" />
+                      <Skeleton width="40%" />
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Skeleton width="80%" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton width={60} />
+                </TableCell>
+                <TableCell align="right">
+                  <Skeleton width={40} sx={{ ml: "auto" }} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
   }
+
   return (
-    <TableContainer component={Paper} sx={{ mt: 2 }}>
+    <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
@@ -220,7 +267,8 @@ function LeaderboardTable({
             <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
             <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
             <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
-            <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>              {sortBy === "total" && "Total Points"}
+            <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+              {sortBy === "total" && "Total Points"}
               {sortBy === "university" && "University Merit"}
               {sortBy === "faculty" && "Faculty Merit"}
               {sortBy === "college" && "College Merit"}
@@ -248,7 +296,8 @@ function LeaderboardTable({
                 break;
               case "college":
                 points = entry.collegeMerit;
-                break;              case "club":
+                break;
+              case "club":
                 points = entry.clubMerit;
                 break;
             }
@@ -308,7 +357,7 @@ function LeaderboardTable({
                   <Typography variant="h6" color="primary" fontWeight="bold">
                     {points}
                   </Typography>
-                </TableCell>{" "}
+                </TableCell>
               </TableRow>
             );
           })}
@@ -344,7 +393,45 @@ function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
   }, []);
 
   if (isLoading) {
-    return <div>Loading top performers...</div>;
+    return (
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom fontWeight="bold">
+          🏆 Top Performers
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
+          {[...Array(3)].map((_, index) => (
+            <Card
+              key={index}
+              sx={{
+                minWidth: 200,
+                textAlign: "center",
+                border: "2px solid #FFD700",
+              }}
+            >
+              <CardContent>
+                <Skeleton
+                  variant="circular"
+                  width={64}
+                  height={64}
+                  sx={{ mx: "auto", mb: 2 }}
+                />
+                <Skeleton width="60%" sx={{ mx: "auto", mb: 1 }} />
+                <Skeleton width="80%" sx={{ mx: "auto", mb: 2 }} />
+                <Skeleton width={60} height={40} sx={{ mx: "auto", mb: 0.5 }} />
+                <Skeleton width={80} sx={{ mx: "auto" }} />
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      </Box>
+    );
   }
 
   return (
@@ -425,7 +512,8 @@ export default function Leaderboard() {
   const [currentUserId, setCurrentUserId] = useState<string>("1"); // Default fallback
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>(
     UserRole.STUDENT
-  );  useEffect(() => {
+  );
+  useEffect(() => {
     // Get current user ID and role from authentication
     const getCurrentUser = async () => {
       try {
@@ -457,7 +545,6 @@ export default function Leaderboard() {
 
   return (
     <Box>
-      {" "}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Merit Leaderboard
@@ -473,22 +560,19 @@ export default function Leaderboard() {
         isStudent={isStudent}
       />
       <TopThreePodium currentUserId={currentUserId} />
-      <Paper sx={{ width: "100%" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={selectedTab}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab label="Overall Ranking" />
-            <Tab label="University Merit" />
-            <Tab label="Faculty Merit" />
-            <Tab label="College Merit" />
-            <Tab label="Club Merit" />
-          </Tabs>
-        </Box>
-
+      <Paper>
+        <Tabs
+          value={selectedTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+        >
+          <Tab label="Overall Ranking" />
+          <Tab label="University Merit" />
+          <Tab label="Faculty Merit" />
+          <Tab label="College Merit" />
+          <Tab label="Club Merit" />
+        </Tabs>
         <TabPanel value={selectedTab} index={0}>
           <LeaderboardTable sortBy="total" currentUserId={currentUserId} />
         </TabPanel>
@@ -500,11 +584,9 @@ export default function Leaderboard() {
         </TabPanel>
         <TabPanel value={selectedTab} index={3}>
           <LeaderboardTable sortBy="college" currentUserId={currentUserId} />
-        </TabPanel>        <TabPanel value={selectedTab} index={4}>
-          <LeaderboardTable
-            sortBy="club"
-            currentUserId={currentUserId}
-          />
+        </TabPanel>
+        <TabPanel value={selectedTab} index={4}>
+          <LeaderboardTable sortBy="club" currentUserId={currentUserId} />
         </TabPanel>
       </Paper>
     </Box>
