@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Student } from "@/types/api.types";
-import authService from "@/services/auth/authService";
-import DataService from "@/services/data/DataService";
+import meritService from "@/services/merit/meritService";
 
 interface MeritSummary {
   totalPoints: number;
@@ -61,25 +60,46 @@ export const useUserStore = create<UserStore>()(
 
         set({ isLoading: true, error: null });
         try {
-          // Get current authenticated user
-          const currentUser = await authService.getCurrentUser();
-          if (!currentUser) {
-            // Don't fallback to a hardcoded user - this was causing admin users to become Ahmad Abdullah
+          const studentResponse = await fetch("/api/students/me", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!studentResponse.ok) {
+            const errorData = await studentResponse.json().catch(() => ({}));
+            if (studentResponse.status === 401) {
+              throw new Error(
+                "No authenticated user found. Please log in again."
+              );
+            }
             throw new Error(
-              "No authenticated user found. Please log in again."
+              errorData.error || "Failed to fetch student data"
             );
           }
 
-          // Get full student data using the user ID
-          const studentData = DataService.getStudentById(currentUser.id);
-          if (!studentData) {
+          const studentDataResult = await studentResponse.json();
+          if (!studentDataResult.success || !studentDataResult.data) {
             throw new Error(
-              `Student data not found for user ID: ${currentUser.id}`
+              studentDataResult.error || "Student data not found"
             );
-          } // Get merit summary
-          const meritSummary = DataService.getStudentMeritSummary(
-            currentUser.id
+          }
+
+          const studentData = studentDataResult.data as Student;
+          
+          // Get merit summary from API using the student ID
+          const meritSummaryResponse = await meritService.getStudentMeritSummary(
+            studentData.id
           );
+          
+          if (!meritSummaryResponse.success || !meritSummaryResponse.data) {
+            throw new Error(
+              meritSummaryResponse.error || "Failed to fetch merit summary"
+            );
+          }
+          
+          const meritSummary = meritSummaryResponse.data;
 
           set({
             profileData: {
@@ -102,29 +122,50 @@ export const useUserStore = create<UserStore>()(
         }
       },
 
-      // Refresh user profile (force reload without cache)
+      // Refresh user profile
       refreshUserProfile: async () => {
         set({ isLoading: true, error: null });
         try {
-          const currentUser = await authService.getCurrentUser();
-          if (!currentUser) {
-            // Don't fallback to a hardcoded user - this was causing admin users to become Ahmad Abdullah
+          const studentResponse = await fetch("/api/students/me", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!studentResponse.ok) {
+            const errorData = await studentResponse.json().catch(() => ({}));
+            if (studentResponse.status === 401) {
+              throw new Error(
+                "No authenticated user found. Please log in again."
+              );
+            }
             throw new Error(
-              "No authenticated user found. Please log in again."
+              errorData.error || "Failed to fetch student data"
             );
           }
 
-          // Get full student data using the user ID
-          const studentData = DataService.getStudentById(currentUser.id);
-          if (!studentData) {
+          const studentDataResult = await studentResponse.json();
+          if (!studentDataResult.success || !studentDataResult.data) {
             throw new Error(
-              `Student data not found for user ID: ${currentUser.id}`
+              studentDataResult.error || "Student data not found"
             );
           }
 
-          const meritSummary = DataService.getStudentMeritSummary(
-            currentUser.id
+          const studentData = studentDataResult.data as Student;
+          
+          // Get merit summary from API using the student ID
+          const meritSummaryResponse = await meritService.getStudentMeritSummary(
+            studentData.id
           );
+          
+          if (!meritSummaryResponse.success || !meritSummaryResponse.data) {
+            throw new Error(
+              meritSummaryResponse.error || "Failed to fetch merit summary"
+            );
+          }
+          
+          const meritSummary = meritSummaryResponse.data;
 
           set({
             profileData: {
@@ -164,25 +205,46 @@ export const useUserStore = create<UserStore>()(
           error: null,
         });
         try {
-          const currentUser = await authService.getCurrentUser();
-          if (!currentUser) {
-            // Don't fallback to a hardcoded user - this was causing admin users to become Ahmad Abdullah
+          const studentResponse = await fetch("/api/students/me", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!studentResponse.ok) {
+            const errorData = await studentResponse.json().catch(() => ({}));
+            if (studentResponse.status === 401) {
+              throw new Error(
+                "No authenticated user found. Please log in again."
+              );
+            }
             throw new Error(
-              "No authenticated user found. Please log in again."
+              errorData.error || "Failed to fetch student data"
             );
           }
 
-          // Get full student data using the user ID
-          const studentData = DataService.getStudentById(currentUser.id);
-          if (!studentData) {
+          const studentDataResult = await studentResponse.json();
+          if (!studentDataResult.success || !studentDataResult.data) {
             throw new Error(
-              `Student data not found for user ID: ${currentUser.id}`
+              studentDataResult.error || "Student data not found"
             );
           }
 
-          const meritSummary = DataService.getStudentMeritSummary(
-            currentUser.id
+          const studentData = studentDataResult.data as Student;
+          
+          // Get merit summary from API using the student ID
+          const meritSummaryResponse = await meritService.getStudentMeritSummary(
+            studentData.id
           );
+          
+          if (!meritSummaryResponse.success || !meritSummaryResponse.data) {
+            throw new Error(
+              meritSummaryResponse.error || "Failed to fetch merit summary"
+            );
+          }
+          
+          const meritSummary = meritSummaryResponse.data;
 
           set({
             profileData: {

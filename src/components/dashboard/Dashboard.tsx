@@ -3,9 +3,10 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { ErrorDisplay, LoadingDisplay } from "@/components/ui/ErrorDisplay";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import DataService from "@/services/data/DataService";
+import eventService from "@/services/event/eventService";
+import { Event } from "@/types/api.types";
 import { Box, Grid, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import MeritSummaryCard from "./MeritSummaryCard";
 import PointsBreakdown from "./PointsBreakdown";
 import ProgressInsights from "./ProgressInsights";
@@ -14,18 +15,26 @@ import UpcomingEvents from "./UpcomingEvents";
 
 export default function Dashboard() {
   const { student, meritSummary, isLoading, error, refresh } = useUserProfile();
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
-  // Get additional dashboard data using useMemo to prevent unnecessary recalculations
-  const dashboardExtras = useMemo(() => {
-    if (!student) return null;
-
-    const summary = DataService.getDashboardSummary(student.id);
-    return {
-      upcomingEvents: summary.upcomingEvents,
-      totalRegistrations: summary.totalRegistrations,
-      recentActivities: summary.recentActivities,
+  // Fetch upcoming events
+  useEffect(() => {
+    const fetchUpcomingEvents = async () => {
+      try {
+        const response = await eventService.getEvents(
+          { page: 1, limit: 5 },
+          { status: "Upcoming" }
+        );
+        if (response.success && response.data) {
+          setUpcomingEvents(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching upcoming events:", error);
+      }
     };
-  }, [student]);
+
+    fetchUpcomingEvents();
+  }, []);
 
   if (isLoading) {
     return (
@@ -98,7 +107,7 @@ export default function Dashboard() {
           <RecentActivities studentId={student.id} />
         </Grid>
         <Grid size={{ xs: 12, md: 5 }}>
-          <UpcomingEvents events={dashboardExtras?.upcomingEvents || []} />
+          <UpcomingEvents events={upcomingEvents} />
         </Grid>
       </Grid>
     </DashboardLayout>

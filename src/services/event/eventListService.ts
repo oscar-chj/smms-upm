@@ -4,7 +4,7 @@
  */
 
 import { Event, EventCategory, EventStatus } from "@/types/api.types";
-import { events } from "@/data/events";
+import eventService from "./eventService";
 
 // Cache configuration
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
@@ -96,7 +96,7 @@ export class EventListService {
   }
 
   /**
-   * Fetch event list from server (simulated)
+   * Fetch event list from server
    * UC2: Provide Event List implementation
    */
   static async fetchEventList(): Promise<Event[]> {
@@ -110,17 +110,21 @@ export class EventListService {
 
       console.log("Fetching fresh event list from server...");
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Fetch from API (get all events, no pagination limit for list view)
+      const response = await eventService.getEvents(
+        { page: 1, limit: 1000 }, // Large limit to get all events
+        undefined
+      );
 
-      // Simulate potential API failures (5% chance)
-      if (Math.random() < 0.05) {
-        throw new Error("Network error: Unable to fetch event list");
-      } // Cache the fresh data
-      this.cacheEvents(events);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Failed to fetch event list");
+      }
+
+      // Cache the fresh data
+      this.cacheEvents(response.data);
 
       console.log("Event list fetched and cached successfully");
-      return events;
+      return response.data;
     } catch (error) {
       console.error("Failed to fetch event list:", error);
 

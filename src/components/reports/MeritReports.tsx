@@ -2,7 +2,7 @@
 
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
 import { formatDate } from "@/lib/dateUtils";
-import DataService from "@/services/data/DataService";
+import meritService from "@/services/merit/meritService";
 import { EventCategory, MeritRecord } from "@/types/api.types";
 import { Download, Print } from "@mui/icons-material";
 import {
@@ -60,10 +60,22 @@ export default function MeritReports({
   const [records, setRecords] = useState<MeritRecord[]>([]);
 
   useEffect(() => {
-    // Fetch data from DataService
-    const meritRecords = DataService.getStudentMeritRecords(studentId);
+    // Fetch data from API
+    const fetchRecords = async () => {
+      try {
+        const response = await meritService.getStudentMeritRecords(studentId, {
+          limit: 1000, // Get all records for reports
+        });
 
-    setRecords(meritRecords);
+        if (response.success && response.data) {
+          setRecords(response.data.records);
+        }
+      } catch (error) {
+        console.error("Error fetching merit records:", error);
+      }
+    };
+
+    fetchRecords();
   }, [studentId]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {

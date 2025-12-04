@@ -1,7 +1,6 @@
 "use client";
 
 import authService from "@/services/auth/authService";
-import DataService from "@/services/data/DataService";
 import { UserRole } from "@/types/auth.types";
 import {
   Avatar,
@@ -75,34 +74,46 @@ interface LeaderboardTableProps {
   currentUserId?: string;
 }
 
-function getCurrentUserRanking(
+async function getCurrentUserRanking(
   currentUserId: string,
   sortBy: "total" | "university" | "faculty" | "college" | "club"
 ) {
-  const sortedData = DataService.getLeaderboardData(sortBy);
-  const userIndex = sortedData.findIndex((entry) => entry.id === currentUserId);
+  try {
+    const response = await fetch(`/api/leaderboard?sortBy=${sortBy}`);
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    if (!data.success || !data.data) return null;
+    
+    const sortedData = data.data;
+    const userIndex = sortedData.findIndex((entry) => entry.id === currentUserId);
 
-  if (userIndex === -1) return null;
+    if (userIndex === -1) return null;
 
-  const userEntry = sortedData[userIndex];
-  const rank = userIndex + 1;
+    const userEntry = sortedData[userIndex];
+    const rank = userIndex + 1;
 
-  let points = userEntry.totalPoints;
-  switch (sortBy) {
-    case "university":
-      points = userEntry.universityMerit;
-      break;
-    case "faculty":
-      points = userEntry.facultyMerit;
-      break;
-    case "college":
-      points = userEntry.collegeMerit;
-      break;    case "club":
-      points = userEntry.clubMerit;
-      break;
+    let points = userEntry.totalPoints;
+    switch (sortBy) {
+      case "university":
+        points = userEntry.universityMerit;
+        break;
+      case "faculty":
+        points = userEntry.facultyMerit;
+        break;
+      case "college":
+        points = userEntry.collegeMerit;
+        break;
+      case "club":
+        points = userEntry.clubMerit;
+        break;
+    }
+
+    return { rank, points, total: sortedData.length };
+  } catch (error) {
+    console.error("Error getting user ranking:", error);
+    return null;
   }
-
-  return { rank, points, total: sortedData.length };
 }
 
 interface CurrentUserRankingProps {
@@ -116,10 +127,19 @@ function CurrentUserRanking({
   sortBy,
   isStudent,
 }: CurrentUserRankingProps) {
-  if (!isStudent) return null;
+  const [ranking, setRanking] = React.useState<{
+    rank: number;
+    points: number;
+    total: number;
+  } | null>(null);
 
-  const ranking = getCurrentUserRanking(currentUserId, sortBy);
-  if (!ranking) return null;
+  useEffect(() => {
+    if (!isStudent) return;
+    
+    getCurrentUserRanking(currentUserId, sortBy).then(setRanking);
+  }, [currentUserId, sortBy, isStudent]);
+
+  if (!isStudent || !ranking) return null;
   const categoryNames = {
     total: "Overall",
     university: "University Merit",
@@ -161,10 +181,36 @@ function LeaderboardTable({
   sortBy,
   currentUserId = "1",
 }: LeaderboardTableProps) {
-  const sortedData = DataService.getLeaderboardData(sortBy);
+  const [sortedData, setSortedData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/leaderboard?sortBy=${sortBy}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setSortedData(data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [sortBy]);
 
   // Show only top 10 students for leaderboard
   const displayData = sortedData.slice(0, 10);
+
+  if (isLoading) {
+    return <div>Loading leaderboard...</div>;
+  }
   return (
     <TableContainer component={Paper} sx={{ mt: 2 }}>
       <Table>
@@ -273,7 +319,33 @@ function LeaderboardTable({
 }
 
 function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
-  const top3 = DataService.getLeaderboardData("total").slice(0, 3);
+  const [top3, setTop3] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTop3 = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/leaderboard?sortBy=total");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setTop3(data.data.slice(0, 3));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching top 3:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTop3();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading top performers...</div>;
+  }
 
   return (
     <Box sx={{ mb: 4 }}>

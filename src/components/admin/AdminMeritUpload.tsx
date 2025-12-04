@@ -1,9 +1,8 @@
 "use client";
 
-import { students } from "@/data/students";
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
-import DataService from "@/services/data/DataService";
-import { Event } from "@/types/api.types";
+import eventService from "@/services/event/eventService";
+import { Event, EventRegistration, Student } from "@/types/api.types";
 import {
   ArrowBack,
   Check,
@@ -92,19 +91,40 @@ export default function AdminMeritUpload({
   });
 
   useEffect(() => {
-    // Get completed events for selection
-    const allEvents = DataService.getEvents();
-    const completed = allEvents.filter((event) => event.status === "Completed");
-    setCompletedEvents(completed);
+    // Fetch completed events from API
+    const fetchCompletedEvents = async () => {
+      try {
+        const response = await eventService.getEvents(
+          { page: 1, limit: 1000 }, // Get all events
+          { status: "Completed" }
+        );
 
-    // Initialize selected event
-    if (eventId) {
-      const event = DataService.getEventById(eventId);
-      setSelectedEvent(event || null);
-      if (event) {
-        setActiveStep(1); // Skip event selection if eventId is provided
-        updateMeritWeightageForEvent(event);
+        if (response.success && response.data) {
+          setCompletedEvents(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching completed events:", error);
       }
+    };
+
+    fetchCompletedEvents();
+
+    // Initialize selected event if eventId is provided
+    if (eventId) {
+      const fetchEvent = async () => {
+        try {
+          const response = await eventService.getEventById(eventId);
+          if (response.success && response.data) {
+            setSelectedEvent(response.data);
+            setActiveStep(1); // Skip event selection if eventId is provided
+            updateMeritWeightageForEvent(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching event:", error);
+        }
+      };
+
+      fetchEvent();
     }
   }, [eventId]);
 
@@ -151,34 +171,89 @@ export default function AdminMeritUpload({
   };
 
   // Get participants for the selected event
-  const getEventParticipants = (): ParticipantMeritEntry[] => {
+  const getEventParticipants = async (): Promise<ParticipantMeritEntry[]> => {
     if (!selectedEvent) return [];
 
-    // Get registrations for this event
-    const allRegistrations = DataService.getRegistrations();
-    const eventRegistrations = allRegistrations.filter(
-      (reg) => reg.eventId === selectedEvent.id && reg.status === "Attended"
-    );
+    try {
+      // Get registrations for this event
+      const registrationsResponse = await eventService.getEventRegistrations(
+        selectedEvent.id,
+        { page: 1, limit: 1000 } // Get all registrations
+      );
 
-    // Create participant entries
-    const participants: ParticipantMeritEntry[] = [];
-
-    eventRegistrations.forEach((registration) => {
-      const student = students.find((s) => s.id === registration.studentId);
-      if (student) {
-        participants.push({
-          studentId: student.studentId,
-          studentName: student.name,
-          points: meritWeightage.participantPoints,
-          meritType: meritWeightage.meritType,
-          role: "Participant",
-          isValid: true,
-          status: "valid",
-        });
+      if (!registrationsResponse.success || !registrationsResponse.data) {
+        return [];
       }
-    });
 
-    return validateParticipantEntries(participants);
+      // Filter for attended registrations
+      const attendedRegistrations = registrationsResponse.data.filter(
+        (reg) => reg.status === "Attended"
+      );
+
+      // Fetch student data for each registration
+      const participants: ParticipantMeritEntry[] = [];
+
+      for (const registration of attendedRegistrations) {
+        try {
+          // Get student data from API using internal user ID
+          const studentResponse = await fetch(
+            `/api/students/by-id/${registration.studentId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (studentResponse.ok) {
+            const studentData = await studentResponse.json();
+            if (studentData.success && studentData.data) {
+              const student = studentData.data as Student;
+              participants.push({
+                studentId: student.studentId || student.id, // Use university studentId or fallback to internal ID
+                studentName: student.name,
+                points: meritWeightage.participantPoints,
+                meritType: meritWeightage.meritType,
+                role: "Participant",
+                isValid: true,
+                status: "valid",
+              });
+            }
+          } else {
+            // If student not found, still add entry but mark as invalid
+            participants.push({
+              studentId: registration.studentId,
+              studentName: "Unknown",
+              points: meritWeightage.participantPoints,
+              meritType: meritWeightage.meritType,
+              role: "Participant",
+              isValid: false,
+              status: "invalid",
+              errors: ["Student not found"],
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+          // Add entry with error
+          participants.push({
+            studentId: registration.studentId,
+            studentName: "Unknown",
+            points: meritWeightage.participantPoints,
+            meritType: meritWeightage.meritType,
+            role: "Participant",
+            isValid: false,
+            status: "invalid",
+            errors: ["Failed to fetch student data"],
+          });
+        }
+      }
+
+      return validateParticipantEntries(participants);
+    } catch (error) {
+      console.error("Error fetching event participants:", error);
+      return [];
+    }
   };
 
   // Validate participant entries
@@ -195,12 +270,8 @@ export default function AdminMeritUpload({
       const errors: string[] = [];
       let isValid = true;
 
-      // Check if student exists in the system
-      const student = students.find((s) => s.studentId === entry.studentId);
-      if (!student) {
-        errors.push("Student ID not found in system");
-        isValid = false;
-      }
+      // Note: Student existence is already checked when fetching from API
+      // If studentName is "Unknown", it means student wasn't found
 
       // Check for duplicate entries
       if (seenStudentIds.has(entry.studentId)) {
@@ -224,12 +295,16 @@ export default function AdminMeritUpload({
         isValid = false;
       }
 
+      // If entry already has errors (from API fetch), preserve them
+      const existingErrors = (entry as any).errors || [];
+      const allErrors = [...existingErrors, ...errors];
+
       validatedEntries.push({
         ...entry,
-        isValid,
-        status: isValid ? "valid" : "invalid",
-        errors: errors.length > 0 ? errors : undefined,
-        errorMessage: errors.length > 0 ? errors[0] : undefined,
+        isValid: isValid && allErrors.length === 0,
+        status: isValid && allErrors.length === 0 ? "valid" : "invalid",
+        errors: allErrors.length > 0 ? allErrors : undefined,
+        errorMessage: allErrors.length > 0 ? allErrors[0] : undefined,
       });
     });
 
@@ -242,15 +317,18 @@ export default function AdminMeritUpload({
     setActiveStep(1);
   };
 
-  const handleWeightageNext = () => {
+  const handleWeightageNext = async () => {
     setIsProcessing(true);
-    // Generate participant data based on event registrations
-    setTimeout(() => {
-      const participants = getEventParticipants();
+    try {
+      // Generate participant data based on event registrations
+      const participants = await getEventParticipants();
       setParticipantData(participants);
-      setIsProcessing(false);
       setActiveStep(2);
-    }, 1000);
+    } catch (error) {
+      console.error("Error loading participants:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRoleChange = (
@@ -597,9 +675,6 @@ export default function AdminMeritUpload({
           </TableHead>
           <TableBody>
             {participantData.map((entry, index) => {
-              const student = students.find(
-                (s) => s.studentId === entry.studentId
-              );
               return (
                 <TableRow key={`${entry.studentId}-${index}`}>
                   <TableCell>{entry.studentId}</TableCell>
@@ -608,11 +683,6 @@ export default function AdminMeritUpload({
                       <Typography variant="body2">
                         {entry.studentName}
                       </Typography>
-                      {student && (
-                        <Typography variant="caption" color="text.secondary">
-                          {student.faculty} • Year {student.year}
-                        </Typography>
-                      )}
                     </Box>
                   </TableCell>
                   <TableCell>
