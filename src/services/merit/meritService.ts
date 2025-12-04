@@ -44,6 +44,8 @@ class MeritService {
       const data = await response.json();
       return data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error fetching merit summary:", error);
       return {
         success: false,
@@ -89,6 +91,8 @@ class MeritService {
         data: data.data,
       };
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error fetching merit records:", error);
       return {
         success: false,

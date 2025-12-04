@@ -27,7 +27,7 @@ export class EventService {
   ): Promise<PaginatedResponse<Event[]>> {
     try {
       const url = new URL("/api/events", window.location.origin);
-      
+
       if (params?.page) {
         url.searchParams.set("page", params.page.toString());
       }
@@ -66,6 +66,8 @@ export class EventService {
         pagination: data.pagination,
       };
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error getting events:", error);
       return this.createErrorPaginatedResponse(
         "Failed to retrieve events",
@@ -106,6 +108,8 @@ export class EventService {
       const data = await response.json();
       return data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error getting event by ID:", error);
       return {
         success: false,
@@ -121,8 +125,7 @@ export class EventService {
    * @returns API response containing the registration or an error
    */
   async registerForEvent(
-    eventId: string,
-    studentId?: string // Optional - API will use current user if not provided
+    eventId: string
   ): Promise<ApiResponse<EventRegistration>> {
     try {
       // Input validation
@@ -152,6 +155,8 @@ export class EventService {
       const data = await response.json();
       return data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error registering for event:", error);
       return {
         success: false,
@@ -166,10 +171,7 @@ export class EventService {
    * @param studentId - The student ID
    * @returns API response indicating success or failure
    */
-  async cancelRegistration(
-    eventId: string,
-    studentId?: string
-  ): Promise<ApiResponse<void>> {
+  async cancelRegistration(eventId: string): Promise<ApiResponse<void>> {
     try {
       // Input validation
       if (!eventId) {
@@ -197,6 +199,8 @@ export class EventService {
       const data = await response.json();
       return data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error cancelling registration:", error);
       return {
         success: false,
@@ -216,7 +220,7 @@ export class EventService {
   ): Promise<PaginatedResponse<EventRegistration[]>> {
     try {
       const url = new URL("/api/registrations", window.location.origin);
-      
+
       if (studentId) {
         url.searchParams.set("studentId", studentId);
       }
@@ -249,6 +253,8 @@ export class EventService {
         pagination: data.pagination,
       };
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error getting student registrations:", error);
       return this.createErrorPaginatedResponse(
         "Failed to retrieve registrations",
@@ -276,7 +282,7 @@ export class EventService {
 
       const url = new URL("/api/registrations", window.location.origin);
       url.searchParams.set("eventId", eventId);
-      
+
       if (params?.page) {
         url.searchParams.set("page", params.page.toString());
       }
@@ -306,6 +312,8 @@ export class EventService {
         pagination: data.pagination,
       };
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error getting event registrations:", error);
       return this.createErrorPaginatedResponse(
         "Failed to retrieve registrations",
@@ -313,7 +321,6 @@ export class EventService {
       );
     }
   }
-
 
   /**
    * Helper method to create error response with pagination

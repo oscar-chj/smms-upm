@@ -1,6 +1,6 @@
 "use client";
 
-import authService from "@/services/auth/authService";
+import { useSession } from "next-auth/react";
 import { UserRole } from "@/types/auth.types";
 import {
   Avatar,
@@ -21,6 +21,19 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+
+interface LeaderboardEntry {
+  id: string;
+  studentId: string;
+  name: string;
+  faculty: string;
+  year: number;
+  totalPoints: number;
+  universityPoints: number;
+  facultyPoints: number;
+  collegePoints: number;
+  clubPoints: number;
+}
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -88,7 +101,7 @@ async function getCurrentUserRanking(
 
     const sortedData = data.data;
     const userIndex = sortedData.findIndex(
-      (entry) => entry.id === currentUserId
+      (entry: { id: string }) => entry.id === currentUserId
     );
 
     if (userIndex === -1) return null;
@@ -114,6 +127,8 @@ async function getCurrentUserRanking(
 
     return { rank, points, total: sortedData.length };
   } catch (error) {
+    // TODO: Implement proper error handling/display
+    // eslint-disable-next-line no-console
     console.error("Error getting user ranking:", error);
     return null;
   }
@@ -184,7 +199,7 @@ function LeaderboardTable({
   sortBy,
   currentUserId = "1",
 }: LeaderboardTableProps) {
-  const [sortedData, setSortedData] = useState<any[]>([]);
+  const [sortedData, setSortedData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -199,6 +214,8 @@ function LeaderboardTable({
           }
         }
       } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching leaderboard:", error);
       } finally {
         setIsLoading(false);
@@ -213,162 +230,188 @@ function LeaderboardTable({
 
   if (isLoading) {
     return (
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
-              <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
-              <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
-              <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
-              <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
-                Points
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {[...Array(10)].map((_, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Skeleton variant="circular" width={32} height={32} />
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Skeleton variant="circular" width={32} height={32} />
-                    <Box sx={{ flex: 1 }}>
-                      <Skeleton width="60%" />
-                      <Skeleton width="40%" />
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Skeleton width="80%" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton width={60} />
-                </TableCell>
-                <TableCell align="right">
-                  <Skeleton width={40} sx={{ ml: "auto" }} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Card>
+        <CardContent>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
+                  <TableCell sx={{ width: 220, minWidth: 220 }}>
+                    Student
+                  </TableCell>
+                  <TableCell sx={{ width: 150, minWidth: 150 }}>
+                    Faculty
+                  </TableCell>
+                  <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
+                  <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+                    Points
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...Array(10)].map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Skeleton variant="circular" width={32} height={32} />
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Box sx={{ flex: 1 }}>
+                          <Skeleton width="60%" />
+                          <Skeleton width="40%" />
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width="80%" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton width={60} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Skeleton width={40} sx={{ ml: "auto" }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
-            <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
-            <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
-            <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
-            <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
-              {sortBy === "total" && "Total Points"}
-              {sortBy === "university" && "University Merit"}
-              {sortBy === "faculty" && "Faculty Merit"}
-              {sortBy === "college" && "College Merit"}
-              {sortBy === "club" && "Club Merit"}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {displayData.map((entry) => {
-            // Calculate actual rank based on original position
-            const actualIndex = sortedData.findIndex(
-              (item) => item.id === entry.id
-            );
-            const displayRank = actualIndex + 1;
-            const isCurrentUser = entry.id === currentUserId;
-
-            let points = entry.totalPoints;
-
-            switch (sortBy) {
-              case "university":
-                points = entry.universityMerit;
-                break;
-              case "faculty":
-                points = entry.facultyMerit;
-                break;
-              case "college":
-                points = entry.collegeMerit;
-                break;
-              case "club":
-                points = entry.clubMerit;
-                break;
-            }
-
-            return (
-              <TableRow
-                key={entry.id}
-                sx={{
-                  "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
-                  ...(isCurrentUser && {
-                    color: "primary.contrastText",
-                    border: "2px solid",
-                    borderColor: "primary.main",
-                  }),
-                }}
-              >
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: getRankColor(displayRank),
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {getRankIcon(displayRank)}
-                    </Typography>
-                    {isCurrentUser && (
-                      <Chip label="You" size="small" color="primary" />
-                    )}
-                  </Box>
+    <Card>
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
+                <TableCell sx={{ width: 220, minWidth: 220 }}>
+                  Student
                 </TableCell>
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar sx={{ width: 32, height: 32 }}>
-                      {entry.name.charAt(0)}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {entry.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {entry.studentId}
-                      </Typography>
-                    </Box>
-                  </Box>
+                <TableCell sx={{ width: 150, minWidth: 150 }}>
+                  Faculty
                 </TableCell>
-                <TableCell>{entry.faculty}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={`Year ${entry.year}`}
-                    size="small"
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="h6" color="primary" fontWeight="bold">
-                    {points}
-                  </Typography>
+                <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
+                <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+                  {sortBy === "total" && "Total Points"}
+                  {sortBy === "university" && "University Merit"}
+                  {sortBy === "faculty" && "Faculty Merit"}
+                  {sortBy === "college" && "College Merit"}
+                  {sortBy === "club" && "Club Merit"}
                 </TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            </TableHead>
+            <TableBody>
+              {displayData.map((entry) => {
+                // Calculate actual rank based on original position
+                const actualIndex = sortedData.findIndex(
+                  (item) => item.id === entry.id
+                );
+                const displayRank = actualIndex + 1;
+                const isCurrentUser = entry.id === currentUserId;
+
+                let points = entry.totalPoints;
+
+                switch (sortBy) {
+                  case "university":
+                    points = entry.universityPoints;
+                    break;
+                  case "faculty":
+                    points = entry.facultyPoints;
+                    break;
+                  case "college":
+                    points = entry.collegePoints;
+                    break;
+                  case "club":
+                    points = entry.clubPoints;
+                    break;
+                }
+
+                return (
+                  <TableRow
+                    key={entry.id}
+                    sx={{
+                      "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
+                      ...(isCurrentUser && {
+                        color: "primary.contrastText",
+                        border: "2px solid",
+                        borderColor: "primary.main",
+                      }),
+                    }}
+                  >
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            color: getRankColor(displayRank),
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {getRankIcon(displayRank)}
+                        </Typography>
+                        {isCurrentUser && (
+                          <Chip label="You" size="small" color="primary" />
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                          {entry.name.charAt(0)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {entry.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {entry.studentId}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{entry.faculty}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={`Year ${entry.year}`}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="h6"
+                        color="primary"
+                        fontWeight="bold"
+                      >
+                        {points}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 }
 
 function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
-  const [top3, setTop3] = useState<any[]>([]);
+  const [top3, setTop3] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -383,6 +426,8 @@ function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
           }
         }
       } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching top 3:", error);
       } finally {
         setIsLoading(false);
@@ -513,25 +558,16 @@ export default function Leaderboard() {
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>(
     UserRole.STUDENT
   );
-  useEffect(() => {
-    // Get current user ID and role from authentication
-    const getCurrentUser = async () => {
-      try {
-        const user = await authService.getCurrentUser();
-        if (user) {
-          setCurrentUserId(user.id);
-          setCurrentUserRole(user.role);
-        } else {
-          console.warn("No authenticated user found in leaderboard");
-          // Don't fallback to default user - this causes admin to become user 1
-        }
-      } catch (error) {
-        console.error("Error getting current user:", error);
-      }
-    };
+  const { data: session } = useSession();
 
-    getCurrentUser();
-  }, []);
+  useEffect(() => {
+    // Get current user from NextAuth session
+    if (session?.user?.id) {
+      setCurrentUserId(session.user.id);
+      // @ts-expect-error - role is added in auth callbacks
+      setCurrentUserRole(session.user.role as UserRole);
+    }
+  }, [session]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);

@@ -1,10 +1,9 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import { ErrorDisplay, LoadingDisplay } from "@/components/ui/ErrorDisplay";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import eventService from "@/services/event/eventService";
-import { Event } from "@/types/api.types";
+import { Event, EventStatus } from "@/types/api.types";
 import { Box, Grid, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import MeritSummaryCard from "./MeritSummaryCard";
@@ -23,12 +22,14 @@ export default function Dashboard() {
       try {
         const response = await eventService.getEvents(
           { page: 1, limit: 5 },
-          { status: "Upcoming" }
+          { status: EventStatus.UPCOMING }
         );
         if (response.success && response.data) {
           setUpcomingEvents(response.data);
         }
       } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching upcoming events:", error);
       }
     };
@@ -37,30 +38,24 @@ export default function Dashboard() {
   }, []);
 
   if (isLoading) {
-    return (
-      <DashboardLayout title="Merit Dashboard">
-        <LoadingDisplay message="Loading your dashboard..." />
-      </DashboardLayout>
-    );
+    return <LoadingDisplay message="Loading your dashboard..." />;
   }
 
   if (error || !student || !meritSummary) {
     return (
-      <DashboardLayout title="Merit Dashboard">
-        <ErrorDisplay
-          message={
-            error || "Unable to load dashboard data. Please try again later."
-          }
-          showRetry
-          onRetry={refresh}
-        />
-      </DashboardLayout>
+      <ErrorDisplay
+        message={
+          error || "Unable to load dashboard data. Please try again later."
+        }
+        showRetry
+        onRetry={refresh}
+      />
     );
   }
 
   return (
-    <DashboardLayout title="Merit Dashboard">
-      <Box sx={{ mb: 4 }}>
+    <Box>
+      <Box>
         <Typography variant="h4" component="h1" gutterBottom>
           Your Merit Progress
         </Typography>
@@ -103,13 +98,13 @@ export default function Dashboard() {
 
       {/* Recent Activities and Upcoming Events */}
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <RecentActivities studentId={student.id} />
         </Grid>
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <UpcomingEvents events={upcomingEvents} />
         </Grid>
       </Grid>
-    </DashboardLayout>
+    </Box>
   );
 }

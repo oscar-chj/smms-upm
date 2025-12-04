@@ -1,13 +1,13 @@
 "use client";
 
-import { Event } from "@/types/api.types";
-import { formatDate as formatEventDate } from "@/lib/dateUtils";
 import { getCategoryColor } from "@/lib/categoryUtils";
+import { formatDate as formatEventDate, toDateString } from "@/lib/dateUtils";
+import { Event } from "@/types/api.types";
 import {
-  Event as EventIcon,
-  LocationOn,
   ArrowForward,
   EventBusy,
+  Event as EventIcon,
+  LocationOn,
 } from "@mui/icons-material";
 import {
   Avatar,
@@ -21,11 +21,11 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Typography,
   Stack,
+  Typography,
 } from "@mui/material";
-import { memo } from "react";
 import Link from "next/link";
+import { memo } from "react";
 
 /**
  * Props for the UpcomingEvents component
@@ -124,40 +124,34 @@ const UpcomingEvents = memo(function UpcomingEvents({
 
                 <ListItemText
                   primary={
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 600, mb: 0.5 }}
-                    >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {event.title}
                     </Typography>
                   }
                   secondary={
-                    <>
-                      {/* Replace Box with Stack to avoid div inside p hydration error */}
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        sx={{ color: "text.secondary", mb: 0.5 }}
-                      >
-                        <EventIcon sx={{ fontSize: 14, mr: 0.5 }} />
-                        <Typography variant="caption" component="span">
-                          {formatEventDate(event.date)}
-                        </Typography>
-                        <Typography component="span" sx={{ mx: 0.5 }}>
-                          •
-                        </Typography>
-                        <LocationOn sx={{ fontSize: 14, mr: 0.5 }} />
-                        <Typography variant="caption" component="span">
-                          {event.location}
-                        </Typography>
+                    <Box component="span" sx={{ display: "block" }}>
+                      {/* Event Date & Location */}
+                      <Stack alignItems="left" sx={{ my: 0.5 }}>
+                        {/* Event Date */}
+                        <Stack direction="row" alignItems="center">
+                          <EventIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                          <Typography variant="caption">
+                            {formatEventDate(toDateString(event.date))}
+                          </Typography>
+                        </Stack>
+
+                        {/* Event Location */}
+                        <Stack direction="row" alignItems="center">
+                          <LocationOn sx={{ fontSize: 14, mr: 0.5 }} />
+                          <Typography variant="caption">
+                            {event.location}
+                          </Typography>
+                        </Stack>
                       </Stack>
 
-                      {/* Replace Box with Stack for the second row as well */}
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        sx={{ mt: 0.5 }}
-                      >
+                      {/* Event Merit Points & Registration Count */}
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        {/* Event Merit Points */}
                         <Chip
                           label={`${event.points} points`}
                           color={getCategoryColor(event.category)}
@@ -165,13 +159,13 @@ const UpcomingEvents = memo(function UpcomingEvents({
                           variant="outlined"
                           sx={{ fontSize: "0.7rem" }}
                         />
+
+                        {/* Event Registration Count */}
                         {event.capacity &&
                           event.registeredCount !== undefined && (
                             <Typography
                               variant="caption"
-                              component="span"
                               sx={{
-                                ml: 1,
                                 color:
                                   event.registeredCount >= event.capacity
                                     ? "error.main"
@@ -186,7 +180,7 @@ const UpcomingEvents = memo(function UpcomingEvents({
                             </Typography>
                           )}
                       </Stack>
-                    </>
+                    </Box>
                   }
                 />
               </ListItem>

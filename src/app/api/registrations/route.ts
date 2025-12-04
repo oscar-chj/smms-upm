@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { prisma, Prisma } from "../../../../prisma/prisma";
+import { prisma } from "../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 const mapPrismaStatusToFrontend = (status: string): string => {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const studentId = studentIdParam || user.id;
 
     // Build where clause
-    const where: Prisma.EventRegistrationWhereInput = { studentId };
+    const where: { studentId: string; eventId?: string } = { studentId };
     if (eventIdParam) {
       where.eventId = eventIdParam;
     }
@@ -93,8 +93,7 @@ export async function GET(request: NextRequest) {
       eventId: reg.eventId,
       studentId: reg.studentId,
       registrationDate: reg.registrationDate.toISOString().split("T")[0],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      status: mapPrismaStatusToFrontend(reg.status) as any,
+      status: mapPrismaStatusToFrontend(reg.status),
       attendanceMarked: reg.attendanceMarked,
       pointsAwarded: reg.pointsAwarded,
     }));

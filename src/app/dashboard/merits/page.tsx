@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import MeritSummary from "@/components/merits/MeritSummary";
 import meritService from "@/services/merit/meritService";
 import { Alert, Box, Button, CircularProgress } from "@mui/material";
@@ -46,8 +45,10 @@ export default function MeritsPage() {
           }
         }
       } catch (err) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching merit data:", err);
-        setError("Failed to load merit data. Please try again.");
+        setError("Failed to load merit data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -63,24 +64,22 @@ export default function MeritsPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Merit Points">
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: 400,
-          }}
-        >
-          <CircularProgress size={60} />
-        </Box>
-      </DashboardLayout>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
     );
   }
 
   if (error || !meritData) {
     return (
-      <DashboardLayout title="Merit Points">
+      <Box>
         <Alert severity="error" sx={{ mb: 3 }}>
           {error ||
             "Unable to load merit data. Please check if event data is available."}
@@ -88,13 +87,11 @@ export default function MeritsPage() {
         <Button variant="contained" onClick={() => window.location.reload()}>
           Retry
         </Button>
-      </DashboardLayout>
+      </Box>
     );
   }
 
   return (
-    <DashboardLayout title="Merit Points">
-      <MeritSummary meritData={meritData} onViewReports={handleViewReports} />
-    </DashboardLayout>
+    <MeritSummary meritData={meritData} onViewReports={handleViewReports} />
   );
 }

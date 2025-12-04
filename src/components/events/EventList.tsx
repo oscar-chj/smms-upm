@@ -2,9 +2,9 @@
 
 import { ErrorDisplay, LoadingDisplay } from "@/components/ui/ErrorDisplay";
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
-import { formatDate } from "@/lib/dateUtils";
+import { formatDate, toDateString } from "@/lib/dateUtils";
 import EventListService from "@/services/event/eventListService";
-import { Event, EventCategory } from "@/types/api.types";
+import { Event, EventCategory, EventStatus } from "@/types/api.types";
 import {
   AccessTime,
   Clear,
@@ -126,7 +126,7 @@ function EventCardList({ events }: EventCardListProps) {
                   sx={{ fontSize: 16, mr: 1, color: "text.secondary" }}
                 />
                 <Typography variant="caption" color="text.secondary">
-                  {formatDate(event.date)} at {event.time}
+                  {formatDate(toDateString(event.date))} at {event.time}
                 </Typography>
               </Box>
 
@@ -161,7 +161,7 @@ function EventCardList({ events }: EventCardListProps) {
               </Box>
             </CardContent>
 
-            {event.status === "Upcoming" && (
+            {event.status === EventStatus.UPCOMING && (
               <Box sx={{ p: 2, pt: 0 }}>
                 <Button
                   variant="contained"
@@ -236,7 +236,6 @@ export default function EventList({
 
       setEvents(fetchedEvents);
     } catch (err) {
-      console.error("Error fetching events:", err);
       const errorMessage =
         err instanceof Error
           ? err.message
@@ -318,13 +317,13 @@ export default function EventList({
 
   // Filter events by status
   const upcomingEvents = processedEvents.filter(
-    (event) => event.status === "Upcoming"
+    (event) => event.status === EventStatus.UPCOMING
   );
   const ongoingEvents = processedEvents.filter(
-    (event) => event.status === "Ongoing"
+    (event) => event.status === EventStatus.ONGOING
   );
   const completedEvents = processedEvents.filter(
-    (event) => event.status === "Completed"
+    (event) => event.status === EventStatus.COMPLETED
   );
 
   // Handle filter dialog

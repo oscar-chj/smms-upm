@@ -33,6 +33,8 @@ export class EventListService {
 
       return now - timestamp < CACHE_DURATION_MS;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error checking cache validity:", error);
       return false;
     }
@@ -54,6 +56,8 @@ export class EventListService {
       const parsed: CachedEventList = JSON.parse(cachedData);
       return parsed.events;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error retrieving cached events:", error);
       this.clearCache();
       return null;
@@ -77,6 +81,8 @@ export class EventListService {
       );
       sessionStorage.setItem("eventListCached", "true");
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error caching events:", error);
       sessionStorage.setItem("eventListCached", "false");
     }
@@ -91,6 +97,8 @@ export class EventListService {
       sessionStorage.removeItem(CACHE_TIMESTAMP_KEY);
       sessionStorage.removeItem("eventListCached");
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error clearing cache:", error);
     }
   }
@@ -103,12 +111,7 @@ export class EventListService {
     try {
       // Check cache first
       const cachedEvents = this.getCachedEvents();
-      if (cachedEvents) {
-        console.log("Using cached event list");
-        return cachedEvents;
-      }
-
-      console.log("Fetching fresh event list from server...");
+      if (cachedEvents) return cachedEvents;
 
       // Fetch from API (get all events, no pagination limit for list view)
       const response = await eventService.getEvents(
@@ -123,14 +126,17 @@ export class EventListService {
       // Cache the fresh data
       this.cacheEvents(response.data);
 
-      console.log("Event list fetched and cached successfully");
       return response.data;
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Failed to fetch event list:", error);
 
       // Try to return stale cache if available
       const staleCache = sessionStorage.getItem(CACHE_KEY);
       if (staleCache) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.warn("Using stale cached event list due to fetch failure");
         const parsed: CachedEventList = JSON.parse(staleCache);
         return parsed.events;

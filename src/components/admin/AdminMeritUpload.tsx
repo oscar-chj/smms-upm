@@ -1,8 +1,10 @@
 "use client";
 
 import { getCategoryColor, getCategoryDisplayName } from "@/lib/categoryUtils";
+import { toDateString } from "@/lib/dateUtils";
 import eventService from "@/services/event/eventService";
-import { Event, EventRegistration, Student } from "@/types/api.types";
+import { Event, EventStatus, Student, EventCategory } from "@/types/api.types";
+import { RegistrationStatus } from "@/types/registration.types";
 import {
   ArrowBack,
   Check,
@@ -96,13 +98,15 @@ export default function AdminMeritUpload({
       try {
         const response = await eventService.getEvents(
           { page: 1, limit: 1000 }, // Get all events
-          { status: "Completed" }
+          { status: EventStatus.COMPLETED }
         );
 
         if (response.success && response.data) {
           setCompletedEvents(response.data);
         }
       } catch (error) {
+        // TODO: Implement proper error handling/display
+        // eslint-disable-next-line no-console
         console.error("Error fetching completed events:", error);
       }
     };
@@ -120,6 +124,8 @@ export default function AdminMeritUpload({
             updateMeritWeightageForEvent(response.data);
           }
         } catch (error) {
+          // TODO: Implement proper error handling/display
+          // eslint-disable-next-line no-console
           console.error("Error fetching event:", error);
         }
       };
@@ -130,31 +136,32 @@ export default function AdminMeritUpload({
 
   // Update merit weightage based on event category
   const updateMeritWeightageForEvent = (event: Event) => {
+    // TODO: Put this in a "config" so it can be easily edited
     let eventMeritType = "University";
     let defaultParticipantPoints = 5;
     let defaultOrganizerPoints = 8;
     let maxThreshold = 20;
 
     switch (event.category) {
-      case "University":
+      case EventCategory.UNIVERSITY:
         eventMeritType = "University";
         defaultParticipantPoints = 8;
         defaultOrganizerPoints = 12;
         maxThreshold = 25;
         break;
-      case "Faculty":
+      case EventCategory.FACULTY:
         eventMeritType = "Faculty";
         defaultParticipantPoints = 6;
         defaultOrganizerPoints = 10;
         maxThreshold = 20;
         break;
-      case "College":
+      case EventCategory.COLLEGE:
         eventMeritType = "College";
         defaultParticipantPoints = 4;
         defaultOrganizerPoints = 7;
         maxThreshold = 15;
         break;
-      case "Club":
+      case EventCategory.CLUB:
         eventMeritType = "Club";
         defaultParticipantPoints = 3;
         defaultOrganizerPoints = 5;
@@ -187,7 +194,7 @@ export default function AdminMeritUpload({
 
       // Filter for attended registrations
       const attendedRegistrations = registrationsResponse.data.filter(
-        (reg) => reg.status === "Attended"
+        (reg) => reg.status === RegistrationStatus.ATTENDED
       );
 
       // Fetch student data for each registration
@@ -234,6 +241,8 @@ export default function AdminMeritUpload({
             });
           }
         } catch (error) {
+          // TODO: Implement proper error handling/display
+          // eslint-disable-next-line no-console
           console.error("Error fetching student data:", error);
           // Add entry with error
           participants.push({
@@ -251,6 +260,8 @@ export default function AdminMeritUpload({
 
       return validateParticipantEntries(participants);
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error fetching event participants:", error);
       return [];
     }
@@ -296,6 +307,7 @@ export default function AdminMeritUpload({
       }
 
       // If entry already has errors (from API fetch), preserve them
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingErrors = (entry as any).errors || [];
       const allErrors = [...existingErrors, ...errors];
 
@@ -325,6 +337,8 @@ export default function AdminMeritUpload({
       setParticipantData(participants);
       setActiveStep(2);
     } catch (error) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Error loading participants:", error);
     } finally {
       setIsProcessing(false);
@@ -476,7 +490,7 @@ export default function AdminMeritUpload({
                           fontSize="small"
                           sx={{ mr: 0.5, verticalAlign: "middle" }}
                         />
-                        {event.date} • {event.location}
+                        {toDateString(event.date)} • {event.location}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Max Points: {event.points}
@@ -849,7 +863,8 @@ export default function AdminMeritUpload({
             Event: <strong>{selectedEvent?.title}</strong>
           </Typography>
           <Typography variant="body2">
-            Date: <strong>{selectedEvent?.date}</strong>
+            Date:{" "}
+            <strong>{selectedEvent && toDateString(selectedEvent.date)}</strong>
           </Typography>
         </Box>
       </Box>{" "}

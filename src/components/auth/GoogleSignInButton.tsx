@@ -18,6 +18,8 @@ export default function GoogleSignInButton({
       setIsLoading(true);
       await handleGoogleSignIn(redirectPath);
     } catch (err) {
+      // TODO: Implement proper error handling/display
+      // eslint-disable-next-line no-console
       console.error("Google sign-in error:", err);
       setIsLoading(false);
     }
