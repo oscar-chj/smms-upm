@@ -121,7 +121,8 @@ const DashboardLayout = memo(function DashboardLayout({
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
+          minHeight: "100vh",
+          overflow: "auto",
         }}
       >
         <AppBar
@@ -165,7 +166,7 @@ const DashboardLayout = memo(function DashboardLayout({
             backgroundColor: "background.default",
           }}
         >
-          <Container maxWidth="lg" sx={{ height: "100%", my: 4 }}>
+          <Container maxWidth="lg" sx={{ my: 4 }}>
             {children}
           </Container>
         </Box>
