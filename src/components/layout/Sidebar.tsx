@@ -133,7 +133,13 @@ const Sidebar = memo(function Sidebar({
     <>
       {/* Collapse Button */}
       {onToggleCollapse && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: collapsed ? "center" : "flex-end",
+            p: 1,
+          }}
+        >
           <Tooltip
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             placement="right"
