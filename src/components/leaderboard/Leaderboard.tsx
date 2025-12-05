@@ -728,8 +728,7 @@ export default function Leaderboard() {
     // Get current user from NextAuth session
     if (session?.user?.id) {
       setCurrentUserId(session.user.id);
-      // @ts-expect-error - role is added in auth callbacks
-      setCurrentUserRole(session.user.role as UserRole);
+      setCurrentUserRole((session.user.role as UserRole) ?? UserRole.STUDENT);
     }
   }, [session]);
 
