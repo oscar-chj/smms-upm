@@ -64,7 +64,6 @@ const mainNavigationItems: NavigationItem[] = [
     iconName: "Assessment",
     href: "/dashboard/reports",
     tooltip: "Generate and view merit reports",
-    roles: [UserRole.STUDENT],
   },
   {
     text: "Upload Merit",
