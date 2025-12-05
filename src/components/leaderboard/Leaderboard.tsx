@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { UserRole } from "@/types/auth.types";
 import {
   Avatar,
@@ -8,7 +7,14 @@ import {
   Card,
   CardContent,
   Chip,
+  Divider,
+  FormControl,
+  InputLabel,
+  List,
+  ListItem,
+  MenuItem,
   Paper,
+  Select,
   Skeleton,
   Tab,
   Table,
@@ -19,8 +25,11 @@ import {
   TableRow,
   Tabs,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
-import React, { useEffect, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface LeaderboardEntry {
   id: string;
@@ -237,187 +246,318 @@ function LeaderboardTable({
   }, [sortBy]);
 
   // Show only top 10 students for leaderboard
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const displayData = sortedData.slice(0, 10);
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardContent>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
-                  <TableCell sx={{ width: 220, minWidth: 220 }}>
-                    Student
-                  </TableCell>
-                  <TableCell sx={{ width: 150, minWidth: 150 }}>
-                    Faculty
-                  </TableCell>
-                  <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
-                  <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
-                    Points
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {[...Array(10)].map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Skeleton variant="circular" width={32} height={32} />
-                    </TableCell>
-                    <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                      >
-                        <Skeleton variant="circular" width={32} height={32} />
-                        <Box sx={{ flex: 1 }}>
-                          <Skeleton width="60%" />
-                          <Skeleton width="40%" />
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton width="80%" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton width={60} />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Skeleton width={40} sx={{ ml: "auto" }} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+    return isMobile ? (
+      <Paper>
+        <List sx={{ p: 0 }}>
+          {[...Array(10)].map((_, index) => (
+            <React.Fragment key={index}>
+              <ListItem sx={{ py: 2, px: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    width: "100%",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <Skeleton variant="circular" width={32} height={32} />
+                  <Skeleton variant="circular" width={40} height={40} />
+                  <Box sx={{ flex: 1 }}>
+                    <Skeleton width="60%" height={20} />
+                    <Skeleton width="50%" height={16} />
+                  </Box>
+                  <Skeleton width={50} height={24} />
+                </Box>
+              </ListItem>
+              {index < 9 && <Divider />}
+            </React.Fragment>
+          ))}
+        </List>
+      </Paper>
+    ) : (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
+              <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
+              <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
+              <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
+              <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+                Points
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {[...Array(10)].map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton variant="circular" width={32} height={32} />
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Skeleton variant="circular" width={32} height={32} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton width="60%" />
+                      <Skeleton width="40%" />
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Skeleton width="80%" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton width={60} />
+                </TableCell>
+                <TableCell align="right">
+                  <Skeleton width={40} sx={{ ml: "auto" }} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
   }
 
-  return (
-    <Card>
-      <CardContent>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
-                <TableCell sx={{ width: 220, minWidth: 220 }}>
-                  Student
-                </TableCell>
-                <TableCell sx={{ width: 150, minWidth: 150 }}>
-                  Faculty
-                </TableCell>
-                <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
-                <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
-                  {sortBy === "total" && "Total Points"}
-                  {sortBy === "university" && "University Merit"}
-                  {sortBy === "faculty" && "Faculty Merit"}
-                  {sortBy === "college" && "College Merit"}
-                  {sortBy === "club" && "Club Merit"}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {displayData.map((entry) => {
-                // Calculate actual rank based on original position
-                const actualIndex = sortedData.findIndex(
-                  (item) => item.id === entry.id
-                );
-                const displayRank = actualIndex + 1;
-                const isCurrentUser = entry.id === currentUserId;
+  // Mobile list view
+  if (isMobile) {
+    return (
+      <Paper>
+        <List sx={{ p: 0 }}>
+          {displayData.map((entry, index) => {
+            const actualIndex = sortedData.findIndex(
+              (item) => item.id === entry.id
+            );
+            const displayRank = actualIndex + 1;
+            const isCurrentUser = entry.id === currentUserId;
 
-                let points = entry.totalPoints;
+            let points = entry.totalPoints;
+            switch (sortBy) {
+              case "university":
+                points = entry.universityMerit;
+                break;
+              case "faculty":
+                points = entry.facultyMerit;
+                break;
+              case "college":
+                points = entry.collegeMerit;
+                break;
+              case "club":
+                points = entry.clubMerit;
+                break;
+            }
 
-                switch (sortBy) {
-                  case "university":
-                    points = entry.universityMerit;
-                    break;
-                  case "faculty":
-                    points = entry.facultyMerit;
-                    break;
-                  case "college":
-                    points = entry.collegeMerit;
-                    break;
-                  case "club":
-                    points = entry.clubMerit;
-                    break;
-                }
-
-                return (
-                  <TableRow
-                    key={entry.id}
+            return (
+              <React.Fragment key={entry.id}>
+                <ListItem
+                  sx={{
+                    py: 2,
+                    px: 2,
+                    ...(isCurrentUser && {
+                      bgcolor: "primary.lighter",
+                      borderLeft: "4px solid",
+                      borderColor: "primary.main",
+                    }),
+                  }}
+                >
+                  <Box
                     sx={{
-                      "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
-                      ...(isCurrentUser && {
-                        color: "primary.contrastText",
-                        border: "2px solid",
-                        borderColor: "primary.main",
-                      }),
+                      display: "flex",
+                      width: "100%",
+                      alignItems: "center",
+                      gap: 2,
                     }}
                   >
-                    <TableCell>
+                    {/* Rank */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: getRankColor(displayRank),
+                        fontWeight: "bold",
+                        minWidth: 40,
+                      }}
+                    >
+                      {getRankIcon(displayRank)}
+                    </Typography>
+
+                    {/* Avatar and Name */}
+                    <Avatar sx={{ width: 40, height: 40, flexShrink: 0 }}>
+                      {entry.name.charAt(0)}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          flexWrap: "wrap",
+                        }}
                       >
                         <Typography
-                          variant="h6"
+                          variant="body2"
+                          fontWeight="bold"
                           sx={{
-                            color: getRankColor(displayRank),
-                            fontWeight: "bold",
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
                           }}
                         >
-                          {getRankIcon(displayRank)}
+                          {entry.name}
                         </Typography>
                         {isCurrentUser && (
-                          <Chip label="You" size="small" color="primary" />
+                          <Chip
+                            label="You"
+                            size="small"
+                            color="primary"
+                            sx={{ height: 18, flexShrink: 0 }}
+                          />
                         )}
                       </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                      >
-                        <Avatar sx={{ width: 32, height: 32 }}>
-                          {entry.name.charAt(0)}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight="medium">
-                            {entry.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {entry.studentId}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{entry.faculty}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={`Year ${entry.year}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
                       <Typography
-                        variant="h6"
-                        color="primary"
-                        fontWeight="bold"
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: "block",
+                          wordBreak: "break-word",
+                          overflowWrap: "break-word",
+                        }}
                       >
-                        {points}
+                        {entry.faculty} • Year {entry.year}
                       </Typography>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CardContent>
-    </Card>
+                    </Box>
+
+                    {/* Points */}
+                    <Typography
+                      variant="h6"
+                      color="primary"
+                      fontWeight="bold"
+                      sx={{ minWidth: 50, textAlign: "right", flexShrink: 0 }}
+                    >
+                      {points}
+                    </Typography>
+                  </Box>
+                </ListItem>
+                {index < displayData.length - 1 && <Divider />}
+              </React.Fragment>
+            );
+          })}
+        </List>
+      </Paper>
+    );
+  }
+
+  // Desktop table view
+  return (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ width: 80, minWidth: 80 }}>Rank</TableCell>
+            <TableCell sx={{ width: 220, minWidth: 220 }}>Student</TableCell>
+            <TableCell sx={{ width: 150, minWidth: 150 }}>Faculty</TableCell>
+            <TableCell sx={{ width: 100, minWidth: 100 }}>Year</TableCell>
+            <TableCell align="right" sx={{ width: 140, minWidth: 140 }}>
+              {sortBy === "total" && "Total Points"}
+              {sortBy === "university" && "University Merit"}
+              {sortBy === "faculty" && "Faculty Merit"}
+              {sortBy === "college" && "College Merit"}
+              {sortBy === "club" && "Club Merit"}
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {displayData.map((entry) => {
+            // Calculate actual rank based on original position
+            const actualIndex = sortedData.findIndex(
+              (item) => item.id === entry.id
+            );
+            const displayRank = actualIndex + 1;
+            const isCurrentUser = entry.id === currentUserId;
+
+            let points = entry.totalPoints;
+
+            switch (sortBy) {
+              case "university":
+                points = entry.universityMerit;
+                break;
+              case "faculty":
+                points = entry.facultyMerit;
+                break;
+              case "college":
+                points = entry.collegeMerit;
+                break;
+              case "club":
+                points = entry.clubMerit;
+                break;
+            }
+
+            return (
+              <TableRow
+                key={entry.id}
+                sx={{
+                  "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
+                  ...(isCurrentUser && {
+                    color: "primary.contrastText",
+                    border: "2px solid",
+                    borderColor: "primary.main",
+                  }),
+                }}
+              >
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: getRankColor(displayRank),
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {getRankIcon(displayRank)}
+                    </Typography>
+                    {isCurrentUser && (
+                      <Chip label="You" size="small" color="primary" />
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar sx={{ width: 32, height: 32 }}>
+                      {entry.name.charAt(0)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        {entry.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {entry.studentId}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>{entry.faculty}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={`Year ${entry.year}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="h6" color="primary" fontWeight="bold">
+                    {points}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -575,6 +715,8 @@ function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
 }
 
 export default function Leaderboard() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [selectedTab, setSelectedTab] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string>("1"); // Default fallback
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>(
@@ -619,18 +761,37 @@ export default function Leaderboard() {
       />
       <TopThreePodium currentUserId={currentUserId} />
       <Paper>
-        <Tabs
-          value={selectedTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="Overall Ranking" />
-          <Tab label="University Merit" />
-          <Tab label="Faculty Merit" />
-          <Tab label="College Merit" />
-          <Tab label="Club Merit" />
-        </Tabs>
+        {isMobile ? (
+          <Box sx={{ p: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={selectedTab}
+                label="Category"
+                onChange={(e) => setSelectedTab(e.target.value as number)}
+              >
+                <MenuItem value={0}>Overall Ranking</MenuItem>
+                <MenuItem value={1}>University Merit</MenuItem>
+                <MenuItem value={2}>Faculty Merit</MenuItem>
+                <MenuItem value={3}>College Merit</MenuItem>
+                <MenuItem value={4}>Club Merit</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        ) : (
+          <Tabs
+            value={selectedTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab label="Overall Ranking" />
+            <Tab label="University Merit" />
+            <Tab label="Faculty Merit" />
+            <Tab label="College Merit" />
+            <Tab label="Club Merit" />
+          </Tabs>
+        )}
         <TabPanel value={selectedTab} index={0}>
           <LeaderboardTable sortBy="total" currentUserId={currentUserId} />
         </TabPanel>
