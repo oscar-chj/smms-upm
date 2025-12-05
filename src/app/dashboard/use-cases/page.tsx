@@ -216,8 +216,8 @@ export default function UseCasesOverviewPage() {
         </Typography>
         <Alert severity="success" sx={{ mt: 2 }}>
           <Typography variant="body1">
-            <strong>Implementation Complete!</strong> All {implementedCount}
-            use cases have been implemented with core logic and sample data.
+            <strong>Implementation Complete!</strong> All {implementedCount} use
+            cases have been implemented with core logic and sample data.
           </Typography>
         </Alert>
       </Box>
@@ -334,10 +334,7 @@ export default function UseCasesOverviewPage() {
                     <ListItemIcon sx={{ minWidth: 24 }}>
                       <CheckCircle fontSize="small" color="success" />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={feature}
-                      primaryTypographyProps={{ variant: "body2" }}
-                    />
+                    <ListItemText primary={feature} />
                   </ListItem>
                 ))}
               </List>
