@@ -54,28 +54,12 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       if (user) {
         token.id = user.id;
       }
-
-      // Fetch user role from database
-      if (token?.id) {
-        const { prisma } = await import("../prisma/prisma");
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true },
-        });
-        if (dbUser) {
-          token.role = dbUser.role;
-        }
-      }
-
       return token;
     },
     async session({ session, token }) {
-      // Add user ID and role from token to session
+      // Add user ID from token to session
       if (token?.id) {
         session.user.id = token.id as string;
-      }
-      if (token?.role) {
-        session.user.role = token.role as string;
       }
       return session;
     },

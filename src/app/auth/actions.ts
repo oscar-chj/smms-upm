@@ -64,19 +64,15 @@ export async function saveGoogleUser(data: {
 
 /**
  * Save or update a dev backdoor user in the database
- * All dev users are created as ADMIN
  */
 export async function saveDevUser(email: string) {
   return await prisma.user.upsert({
     where: { email },
-    update: {
-      role: "ADMIN",
-    },
+    update: {},
     create: {
       email,
       name: "Dev User",
       image: null,
-      role: "ADMIN",
     },
   });
 }

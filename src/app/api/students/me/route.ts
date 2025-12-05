@@ -1,11 +1,11 @@
 import { auth } from "@/auth";
 import { prisma } from "../../../../../prisma/prisma";
 import { NextResponse } from "next/server";
-import { User, UserRole } from "@/types/api.types";
+import { Student, UserRole } from "@/types/api.types";
 
 /**
  * GET /api/students/me
- * Get current authenticated user's data
+ * Get current authenticated user's student data
  */
 export async function GET() {
   try {
@@ -30,14 +30,15 @@ export async function GET() {
       );
     }
 
-    // Return user data with actual role from database
-    const userData: User = {
+    // Anyone with @student.upm.edu.my email is a student
+    // Other fields can be filled during onboarding
+    const student: Student = {
       id: user.id,
       name: user.name ?? "",
       email: user.email,
       emailVerified: user.emailVerified ?? false,
       image: user.image,
-      role: (user.role as UserRole) ?? UserRole.STUDENT,
+      role: UserRole.STUDENT,
       studentId: user.studentId ?? user.email.split("@")[0],
       faculty: user.faculty ?? "",
       year: user.year ?? 1,
@@ -50,7 +51,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: userData,
+      data: student,
     });
   } catch (error) {
     // TODO: Implement proper error handling/display
