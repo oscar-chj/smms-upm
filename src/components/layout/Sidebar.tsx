@@ -170,39 +170,61 @@ const Sidebar = memo(function Sidebar({
               transition: "all 0.3s ease",
             }}
           />
-          {!collapsed && (
-            <>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {userProfile.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {userProfile.role.toUpperCase()}
-              </Typography>
-            </>
-          )}
+          <Stack
+            alignItems="center"
+            sx={{
+              opacity: collapsed ? 0 : 1,
+              maxHeight: collapsed ? 0 : 100,
+              overflow: "hidden",
+              transition: "opacity 0.2s ease, max-height 0.3s ease",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
+            >
+              {userProfile.name}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              {userProfile.role.toUpperCase()}
+            </Typography>
+          </Stack>
         </Box>
 
         {/* Student Information Card */}
-        {!collapsed && userProfile.role === UserRole.STUDENT && (
-          <Stack
-            spacing={0.5}
-            sx={{
-              p: 1.5,
-              bgcolor: "background.default",
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="caption" color="text.secondary">
-              Student ID: {userProfile.studentId}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Faculty: {userProfile.faculty}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Year: {userProfile.year}
-            </Typography>
-          </Stack>
-        )}
+        <Box
+          sx={{
+            opacity: collapsed ? 0 : 1,
+            maxHeight: collapsed ? 0 : 200,
+            overflow: "hidden",
+            transition: "opacity 0.2s ease, max-height 0.3s ease",
+          }}
+        >
+          {userProfile.role === UserRole.STUDENT && (
+            <Stack
+              spacing={0.5}
+              sx={{
+                p: 1.5,
+                bgcolor: "background.default",
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                Student ID: {userProfile.studentId}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Faculty: {userProfile.faculty}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Year: {userProfile.year}
+              </Typography>
+            </Stack>
+          )}
+        </Box>
       </Box>
 
       <Divider sx={{ mx: 2 }} />
@@ -240,18 +262,27 @@ const Sidebar = memo(function Sidebar({
                     sx={{
                       minWidth: collapsed ? 0 : 40,
                       justifyContent: "center",
+                      transition: "min-width 0.3s ease",
                     }}
                   >
                     {getIconComponent(item.iconName)}
                   </ListItemIcon>
-                  {!collapsed && (
+                  <Box
+                    sx={{
+                      opacity: collapsed ? 0 : 1,
+                      width: collapsed ? 0 : "auto",
+                      overflow: "hidden",
+                      transition: "opacity 0.2s ease, width 0.3s ease",
+                    }}
+                  >
                     <ListItemText
                       primary={item.text}
                       primaryTypographyProps={{
                         fontWeight: isSelected ? 500 : 400,
+                        whiteSpace: "nowrap",
                       }}
                     />
-                  )}
+                  </Box>
                 </ListItemButton>
               </Tooltip>
             </ListItem>
@@ -285,16 +316,29 @@ const Sidebar = memo(function Sidebar({
                 sx={{
                   minWidth: collapsed ? 0 : 40,
                   justifyContent: "center",
+                  transition: "min-width 0.3s ease",
                 }}
               >
                 <Logout color="error" />
               </ListItemIcon>
-              {!collapsed && (
+              <Box
+                sx={{
+                  opacity: collapsed ? 0 : 1,
+                  width: collapsed ? 0 : "auto",
+                  overflow: "hidden",
+                  transition: "opacity 0.2s ease, width 0.3s ease",
+                }}
+              >
                 <ListItemText
                   primary="Logout"
-                  primaryTypographyProps={{ color: "error" }}
+                  slotProps={{
+                    primary: {
+                      color: "error",
+                      whiteSpace: "nowrap",
+                    },
+                  }}
                 />
-              )}
+              </Box>
             </ListItemButton>
           </Tooltip>
         </ListItem>
