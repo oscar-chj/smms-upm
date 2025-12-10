@@ -24,7 +24,7 @@
     "@prisma/client": "^6.19.0",
     "@types/js-cookie": "^3.0.6",
     "js-cookie": "^3.0.5",
-    "next": "15.3.2",
+    "next": "15.3.6",
     "next-auth": "^5.0.0-beta.30",
     "prisma": "^6.19.0",
     "react": "^19.0.0",
