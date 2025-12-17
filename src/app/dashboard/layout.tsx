@@ -10,7 +10,6 @@ const pageTitles: Record<string, string> = {
   "/dashboard/leaderboard": "Merit Leaderboard",
   "/dashboard/reports": "Merit Reports",
   "/dashboard/admin/merit-upload": "Admin - Upload Merit",
-  "/dashboard/use-cases": "Use Cases Overview",
 };
 
 export default function DashboardRootLayout({

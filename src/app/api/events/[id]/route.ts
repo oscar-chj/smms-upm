@@ -17,11 +17,7 @@ export async function GET(
       include: {
         _count: {
           select: {
-            registrations: {
-              where: {
-                status: "REGISTERED",
-              },
-            },
+            registrations: true, // Count all registrations regardless of status
           },
         },
       },

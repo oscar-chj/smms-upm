@@ -2,21 +2,6 @@ import { auth } from "@/auth";
 import { prisma } from "../../../../prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-const mapPrismaStatusToFrontend = (status: string): string => {
-  switch (status) {
-    case "REGISTERED":
-      return "Registered";
-    case "WAITLISTED":
-      return "Waitlisted";
-    case "CANCELLED":
-      return "Cancelled";
-    case "ATTENDED":
-      return "Attended";
-    default:
-      return "Registered";
-  }
-};
-
 /**
  * GET /api/registrations
  * Get registrations
@@ -57,13 +42,20 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
 
-    // Use provided studentId or current user's id
-    const studentId = studentIdParam || user.id;
-
     // Build where clause
-    const where: { studentId: string; eventId?: string } = { studentId };
+    const where: { studentId?: string; eventId?: string } = {};
+
+    // If eventId is provided alone, return all registrations for that event
+    // Otherwise filter by studentId (use provided or current user's id)
     if (eventIdParam) {
       where.eventId = eventIdParam;
+      // Only filter by studentId if explicitly provided when querying by event
+      if (studentIdParam) {
+        where.studentId = studentIdParam;
+      }
+    } else {
+      // If no eventId, filter by studentId (default to current user)
+      where.studentId = studentIdParam || user.id;
     }
 
     // Get total count
@@ -93,7 +85,7 @@ export async function GET(request: NextRequest) {
       eventId: reg.eventId,
       studentId: reg.studentId,
       registrationDate: reg.registrationDate.toISOString().split("T")[0],
-      status: mapPrismaStatusToFrontend(reg.status),
+      status: reg.status,
       attendanceMarked: reg.attendanceMarked,
       pointsAwarded: reg.pointsAwarded,
     }));
