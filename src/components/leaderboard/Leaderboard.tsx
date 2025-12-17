@@ -660,7 +660,7 @@ function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
             <Card
               key={student.id}
               sx={{
-                minWidth: 200,
+                maxWidth: 300,
                 textAlign: "center",
                 position: "relative",
                 border: "2px solid #FFD700",
@@ -693,10 +693,25 @@ function TopThreePodium({ currentUserId = "1" }: { currentUserId?: string }) {
                 >
                   {student.name.charAt(0)}
                 </Avatar>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  sx={{
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                  }}
+                >
                   {student.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                  }}
+                >
                   {student.faculty} • Year {student.year}
                 </Typography>
                 <Typography variant="h4" color="primary" fontWeight="bold">

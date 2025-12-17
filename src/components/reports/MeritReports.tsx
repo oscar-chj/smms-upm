@@ -334,7 +334,7 @@ export default function MeritReports({
                 <MenuItem value={1}>University Merit</MenuItem>
                 <MenuItem value={2}>Faculty Merit</MenuItem>
                 <MenuItem value={3}>College Merit</MenuItem>
-                <MenuItem value={4}>Association Merit</MenuItem>
+                <MenuItem value={4}>Club Merit</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -349,7 +349,7 @@ export default function MeritReports({
             <Tab label="University Merit" />
             <Tab label="Faculty Merit" />
             <Tab label="College Merit" />
-            <Tab label="Association Merit" />
+            <Tab label="Club Merit" />
           </Tabs>
         )}
 
@@ -414,7 +414,7 @@ export default function MeritReports({
 
         <TabPanel value={selectedTab} index={4}>
           <Typography variant="h6" gutterBottom>
-            Association/Club Merit Records
+            Club Merit Records
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Points earned:{" "}

@@ -3,11 +3,7 @@
 import type { NextRequest } from "next/server";
 
 // Public routes that don't require authentication
-const publicRoutes = [
-  "/auth/login",
-  "/auth/forgot-password",
-  "/auth/reset-password",
-];
+const publicRoutes = ["/auth/login"];
 
 /**
  * Check if the requested route is a public route

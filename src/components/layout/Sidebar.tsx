@@ -180,7 +180,12 @@ const Sidebar = memo(function Sidebar({
           >
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
+              sx={{
+                fontWeight: 600,
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
+                textAlign: "center",
+              }}
             >
               {userProfile.name}
             </Typography>
