@@ -233,7 +233,7 @@ async function main() {
         category: EventCategory.UNIVERSITY,
         points: 35,
         capacity: 1000,
-        registeredCount: 450,
+        registeredCount: 0, // Will be updated after registrations
         status: EventStatus.COMPLETED,
         imageUrl: "https://picsum.photos/seed/sports/800/400",
       },
@@ -250,7 +250,7 @@ async function main() {
         category: EventCategory.UNIVERSITY,
         points: 60,
         capacity: 80,
-        registeredCount: 75,
+        registeredCount: 0, // Will be updated after registrations
         status: EventStatus.COMPLETED,
         imageUrl: "https://picsum.photos/seed/leadership/800/400",
       },
@@ -267,7 +267,7 @@ async function main() {
         category: EventCategory.CLUB,
         points: 25,
         capacity: 500,
-        registeredCount: 380,
+        registeredCount: 0, // Will be updated after registrations
         status: EventStatus.COMPLETED,
         imageUrl: "https://picsum.photos/seed/charity/800/400",
       },
@@ -275,18 +275,21 @@ async function main() {
   ]);
   console.log(`✅ Created ${events.length} events`);
 
-  // Create Event Registrations and Merit Records for completed events
+  // Create Event Registrations and Merit Records
   console.log("📝 Creating event registrations and merit records...");
   const completedEvents = events.filter(
     (e) => e.status === EventStatus.COMPLETED
   );
+  const upcomingEvents = events.filter(
+    (e) => e.status === EventStatus.UPCOMING
+  );
   let registrationCount = 0;
   let meritCount = 0;
 
+  // Register students for COMPLETED events (with merit records)
   for (const event of completedEvents) {
-    // Register 2-3 random students for each completed event
-    const numRegistrations = Math.floor(Math.random() * 2) + 2;
-    const selectedStudents = students.slice(0, numRegistrations);
+    // Register all students for completed events so we have enough data
+    const selectedStudents = students;
 
     for (const student of selectedStudents) {
       // Create registration
@@ -334,10 +337,49 @@ async function main() {
     await prisma.event.update({
       where: { id: event.id },
       data: {
+        registeredCount: selectedStudents.length,
+      },
+    });
+  }
+
+  // Register students for UPCOMING events (various statuses, no merit yet)
+  for (let i = 0; i < upcomingEvents.length; i++) {
+    const event = upcomingEvents[i];
+    // Register 2-4 students for each upcoming event
+    const numRegistrations = Math.floor(Math.random() * 3) + 2;
+
+    for (let j = 0; j < numRegistrations && j < students.length; j++) {
+      const student = students[j];
+      // Vary the registration status
+      const statuses = [
+        RegistrationStatus.REGISTERED,
+        RegistrationStatus.REGISTERED,
+        RegistrationStatus.WAITLISTED,
+      ];
+      const status = statuses[j % statuses.length];
+
+      await prisma.eventRegistration.create({
+        data: {
+          eventId: event.id,
+          studentId: student.id,
+          registrationDate: new Date(), // Just registered
+          status: status,
+          attendanceMarked: false,
+          pointsAwarded: 0,
+        },
+      });
+      registrationCount++;
+    }
+
+    // Update event registered count
+    await prisma.event.update({
+      where: { id: event.id },
+      data: {
         registeredCount: numRegistrations,
       },
     });
   }
+
   console.log(`✅ Created ${registrationCount} event registrations`);
   console.log(`✅ Created ${meritCount} merit records`);
 
